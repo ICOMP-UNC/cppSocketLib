@@ -1,4 +1,4 @@
-# Request the minimum version of CMake, in case of lower version throws error.
+# Request the minimum version of CMake, in case of lower version throws an error.
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 
 # Define your project and specify the use of C++.
@@ -39,17 +39,6 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")  # Change from *.c to *.cpp
 
 # Create the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
-
-# Compile and link the libraries
-add_subdirectory(lib/libdyn)
-add_subdirectory(lib/libsta)
-
-# Include headers in lib
-target_include_directories(${PROJECT_NAME} PUBLIC lib/libdyn/include)
-target_include_directories(${PROJECT_NAME} PUBLIC lib/libsta/include)
-
-# Link the libraries
-target_link_libraries(${PROJECT_NAME} StatiCLib DynamiCLib)
 
 # Setup Google Test
 if(BUILD_TESTING)  # This is set by enable_testing()
