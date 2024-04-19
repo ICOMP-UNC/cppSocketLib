@@ -1,0 +1,41 @@
+name: "Doc check"
+description: "Code documentation generation with Doxygen"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Run doxygen command"
+      shell: bash
+      run: |
+          # We only make check, not changes
+          DOX_CONF_FILE=$(pwd)/Doxyfile
+
+          # ToDo: Add documentation about this command and describe better
+          {
+              cat $DOX_CONF_FILE
+              echo "INPUT" = $(pwd)/src $(pwd)/include $(pwd)/lib
+          } > $DOX_CONF_FILE
+
+          # Generate documentation
+          # ToDo: Add documentation about this command and describe better
+          sudo dot -c
+
+          ERROR_FILE_FLAG=$(pwd)/dox_errors.txt
+
+          # ToDo: Add documentation and describe better this command
+          DOXYGEN_COMMAND=$(doxygen -s $DOX_CONF_FILE) > $ERROR_FILE_FLAG
+
+          if [ -s $ERROR_FILE_FLAG ]; then
+              echo "Error: There are some files that are not documented correctly"
+              exit 1
+          else
+              echo "All files are documented correctly. Niiiceee"
+              exit 0
+          fi
+    # Upload errors as an artifact, when failed
+    - uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: Doxygen errors!!!
+        path: $(pwd)/dox_errors.txt
+        retention-days: 1

@@ -1,0 +1,35 @@
+name: QA Workflow
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # Pull request events
+    types: [synchronize, opened, reopened, ready_for_review]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: doxygen gcovr lcov cppcheck graphviz clang-format valgrind bc
+          version: 1.0
+
+      - name: Build project
+        uses: ./.github/actions/building
+
+      - name: Run style check
+        uses: ./.github/actions/style
+
+      - name: Run documentation check
+        uses: ./.github/actions/documentation
+
+      - name: Run tests and coverage
+        uses: ./.github/actions/coverage_and_test
