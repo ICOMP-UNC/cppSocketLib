@@ -7,8 +7,10 @@
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
+
 #define TCP 1
 #define UDP 2
+#define MESSAGE_SIZE 1024
 
 enum class Protocol
 {
@@ -244,14 +246,25 @@ class UDPv6Connection : public Connection
             std::cerr << "Incomplete data sent" << std::endl;
             return false;
         }
-        return true;
 
+        return true;
     }
 
     std::string receive() override
     {
-        // Implementación del método receive
-        return "message";
+        char recv_message[MESSAGE_SIZE];
+        memset(recv_message, 0, MESSAGE_SIZE);
+
+        socklen_t addr_len = sizeof(addrinfo);
+
+        int bytes_received = recvfrom(socket_fd_, recv_message, MESSAGE_SIZE, 0, (struct sockaddr*)&addrinfo, &addr_len);
+        
+        if (bytes_received < 0) {
+            std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        return std::string(recv_message);
     }
 
     bool changeOptions() override
