@@ -1,5 +1,5 @@
+# !bin/bash -e
+
 echo ""
-
 echo "  -> Running project..."
-
-./FirstProjectInCMake
+cd ./build && ./FirstProjectInCMake

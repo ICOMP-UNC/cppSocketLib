@@ -1,7 +1,3 @@
-
-# !bin/bash -e
-
-
 echo ""
 
 if [ -d "./build" ]; then
@@ -14,5 +10,17 @@ fi
 
 echo "  -> Compiling project"
 echo ""
-cd build && cmake -GNinja -DRUN_TESTS=1 -DRUN_COVERAGE=1 .. && ninja
+cd build && cmake -GNinja -DRUN_COVERAGE=1 ..
+ninja
+
+echo ""
+echo "  -> Running tests..."
+echo ""
+ctest --test-dir tests/ -VV
+
+echo ""
+echo "  -> Running coverage..."
+echo ""
+cd .. && gcovr -r "$PWD"
+
 
