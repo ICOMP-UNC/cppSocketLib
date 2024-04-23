@@ -1,5 +1,6 @@
 #include <arpa/inet.h>
 #include <cstring>
+#include <fcntl.h>
 #include <iostream>
 #include <memory>
 #include <netdb.h>
@@ -7,6 +8,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <thread>
 
 #define TCP 1
 #define UDP 2
@@ -33,7 +35,7 @@ class Connection
     }
 
     virtual bool bind() = 0;
-    virtual bool connect() = 0;
+    virtual int connect() = 0;
     virtual bool send(const std::string &message) = 0;
     virtual std::string receive() = 0;
     virtual bool changeOptions() = 0;
@@ -63,7 +65,7 @@ class TCPv4Connection : public Connection
         return true;
     }
 
-    bool connect() override
+    int connect() override
     {
         // Implementación del método connect
         return true;
@@ -103,7 +105,7 @@ class TCPv6Connection : public Connection
         return true;
     }
 
-    bool connect() override
+    int connect() override
     {
         // Implementación del método connect
         return true;
@@ -143,7 +145,7 @@ class UDPv4Connection : public Connection
         return true;
     }
 
-    bool connect() override
+    int connect() override
     {
         // Implementación del método connect
         return true;
@@ -175,6 +177,7 @@ class UDPv6Connection : public Connection
     UDPv6Connection(const std::string &address, const std::string &port, bool isBlocking)
         : Connection(address, port, isBlocking)
     {
+
         struct addrinfo hints;
         memset(&hints, 0, sizeof(hints));
         hints.ai_family = AF_INET6;
@@ -186,23 +189,28 @@ class UDPv6Connection : public Connection
             hints.ai_flags = AI_PASSIVE;
         }
 
-        
         int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &addrinfo);
         if (res != 0)
         {
             std::cerr << "Error al obtener la dirección" << std::endl;
             exit(1);
         }
-        socket_fd_ = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
-        //freeaddrinfo(addrinfo);
-        if (socket_fd_ < 0)
+        socket_fd = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
+        // freeaddrinfo(addrinfo);
+        if (socket_fd < 0)
         {
             std::cerr << "Error al crear el socket" << std::endl;
             exit(1);
         }
+        if (!isBlocking)
+        {
+            int flags = fcntl(socket_fd, F_GETFL, 0);
+            fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
+        }
     }
 
-    ~UDPv6Connection() {
+    ~UDPv6Connection()
+    {
         freeaddrinfo(addrinfo);
     }
 
@@ -213,23 +221,22 @@ class UDPv6Connection : public Connection
 
     bool bind() override
     {
-
         // Vincular el socket a la dirección
-        if (::bind(socket_fd_, (struct sockaddr *)&addrinfo, sizeof(addr)) < 0)
+        if (::bind(socket_fd, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
         {
-            std::cerr << "Error al vincular el socket a la dirección" << std::endl;
+            std::cerr << "Error al vincular el socket a la dirección: " << strerror(errno) << "\n" << std::endl;
             return false;
         }
 
         return true;
     }
 
-    bool connect() override
+    int connect() override
     {
         // Conectar el socket a la dirección
-        if (::connect(socket_fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        if (::connect(socket_fd, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
         {
-            std::cerr << "Error al conectar el socket a la dirección" << std::endl;
+            std::cerr << "Error al conectar el socket a la dirección: " << strerror(errno) << "\n" << std::endl;
             return false;
         }
 
@@ -238,11 +245,14 @@ class UDPv6Connection : public Connection
 
     bool send(const std::string &message) override
     {
-        ssize_t sent_bytes = sendto(socket_fd_, message.c_str(), message.size(), 0, addrinfo->ai_addr, addrinfo->ai_addrlen);
-        if (sent_bytes == -1) {
+        ssize_t sent_bytes = ::send(socket_fd, message.c_str(), message.size(), 0);
+        if (sent_bytes == -1)
+        {
             std::cerr << "Error sending data: " << strerror(errno) << std::endl;
             return false;
-        } else if (static_cast<size_t>(sent_bytes) != message.size()) {
+        }
+        else if (static_cast<size_t>(sent_bytes) != message.size())
+        {
             std::cerr << "Incomplete data sent" << std::endl;
             return false;
         }
@@ -257,9 +267,11 @@ class UDPv6Connection : public Connection
 
         socklen_t addr_len = sizeof(addrinfo);
 
-        int bytes_received = recvfrom(socket_fd_, recv_message, MESSAGE_SIZE, 0, (struct sockaddr*)&addrinfo, &addr_len);
-        
-        if (bytes_received < 0) {
+        int bytes_received =
+            ::recv(socket_fd, recv_message, MESSAGE_SIZE, 0);
+
+        if (bytes_received < 0)
+        {
             std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
             exit(EXIT_FAILURE);
         }
@@ -272,13 +284,12 @@ class UDPv6Connection : public Connection
         // Implementación del método changeOptions
         return true;
     }
-    // Implement the virtual methods here
   private:
     int port_;
     bool isBlocking_;
     std::string address_;
     struct sockaddr_in6 addr;
-    int socket_fd_ = socket(AF_INET6, SOCK_DGRAM, 0);
+    int socket_fd;
     struct addrinfo *addrinfo = nullptr;
 };
 
@@ -320,20 +331,30 @@ Connection *createConnection(const std::string &address, const std::string &port
 
 int main()
 {
-    Connection *con1 = createConnection("::1", "8080", false, TCP);
-    Connection *con2 = createConnection("::1", "8080", false, UDP);
-    Connection *con3 = createConnection("127.0.0.1", "8080", false, TCP);
-    Connection *con4 = createConnection("127.0.0.1", "8080", false, UDP);
+    Connection *con1 = createConnection("::1", "7658", true, UDP);
+    Connection *con2 = createConnection("::1", "7658", true, UDP);
 
-    con1->send("Hola");
-    con2->send("Hola");
-    con3->send("Hola");
-    con4->send("Hola");
+
+    // Create two threads for communication
+    std::thread thread1([&]() {
+        con1->bind();
+        std::string message = con1->receive();
+        std::cout << "Received message: " << message << std::endl;
+        // Process the received message from con1
+    });
+
+    std::thread thread2([&]() {
+        con2->connect();
+        con2->send("Hola gil");
+        // Process the received message from con2
+    });
+
+    // Wait for the threads to finish
+    thread1.join();
+    thread2.join();
 
     delete con1;
     delete con2;
-    delete con3;
-    delete con4;
 
     return 0;
 }
