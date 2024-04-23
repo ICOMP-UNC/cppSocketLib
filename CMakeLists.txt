@@ -26,6 +26,9 @@ include(FetchContent)
 # Configure FetchContent to download Google Test
 set(GTEST_GIT_URL "https://github.com/google/googletest.git")
 
+# Enable debug
+set(FETCHCONTENT_QUIET OFF)
+
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY ${GTEST_GIT_URL}
@@ -33,6 +36,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(googletest)
+
 
 # Add the `src` directory, where the C++ source files are located
 file(GLOB_RECURSE SOURCES "src/*.cpp")  # Change from *.c to *.cpp
@@ -43,6 +47,9 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Setup Google Test
 if(BUILD_TESTING)  # This is set by enable_testing()
   add_subdirectory(tests)
+
+  # Collect test source files
+  file(GLOB_RECURSE TEST_SOURCES "tests/unit/*.cpp")
 
   # Link Google Test to the test executable
   add_executable(unit_tests ${TEST_SOURCES})
