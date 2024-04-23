@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 
 # Volver al directorio original# !bin/bash -e
+=======
+# !bin/bash -e
+>>>>>>> 88b5262969388c598d04abefea7296c027e8c15a
 
 echo ""
 
@@ -13,7 +17,10 @@ fi
 
 echo "  -> Building project"
 echo ""
-cd build && cmake -GNinja -DRUN_TESTS=0 -DRUN_COVERAGE=0 .. && ninja
 
-echo " -> Running project"
-./FirstProjectInCMake
+cd build && cmake -GNinja .. && ninja
+
+# echo "  -> Running project"
+# echo ""
+# ./FirstProjectInCMake
+
