@@ -16,7 +16,13 @@
 #define ERROR -1
 #define MESSAGE_SIZE 1024
 
-enum class Protocol { TCPv4, TCPv6, UDPv4, UDPv6 };
+enum class Protocol
+{
+    TCPv4,
+    TCPv6,
+    UDPv4,
+    UDPv6
+};
 
 class IConnection {
  public:
