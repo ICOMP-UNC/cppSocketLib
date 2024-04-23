@@ -18,4 +18,3 @@ cd build && cmake -GNinja -DRUN_TESTS=0 -DRUN_COVERAGE=0 .. && ninja
 
 echo " -> Running project"
 ./FirstProjectInCMake
-
