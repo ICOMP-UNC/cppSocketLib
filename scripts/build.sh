@@ -1,6 +1,7 @@
 
 # !bin/bash -e
 
+
 echo ""
 
 if [ -d "./build" ]; then
@@ -11,12 +12,6 @@ else
     mkdir build
 fi
 
-echo "  -> Building project"
+echo "  -> Compiling project"
 echo ""
-
-cd build && cmake -GNinja .. && ninja
-
-# echo "  -> Running project"
-# echo ""
-# ./FirstProjectInCMake
-
+cd build && cmake -GNinja -DRUN_TESTS=1 -DRUN_COVERAGE=1 .. && ninja
