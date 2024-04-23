@@ -209,11 +209,25 @@ class TCPv4Connection : public IConnection
         return true;
     }
 
+
     std::string receive() override
     {
-        // Implementación del método receive
-        return "message";
+        char buffer[1024];
+        memset(buffer, 0, sizeof(buffer));
+
+        int n = ::recv(m_socket, buffer, sizeof(buffer) - 1, 0);
+        if (n < 0)
+        {
+            throw std::runtime_error("Error: failed to receive message");
+        }
+        else if (n == 0)
+        {
+            throw std::runtime_error("Connection closed by peer");
+        }
+
+        return std::string(buffer, n);
     }
+
 
     bool changeOptions() override
     {
