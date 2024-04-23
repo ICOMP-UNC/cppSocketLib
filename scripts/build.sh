@@ -1,5 +1,4 @@
-
-# Volver al directorio original# !bin/bash -e
+# !bin/bash -e
 
 echo ""
 
@@ -13,7 +12,10 @@ fi
 
 echo "  -> Building project"
 echo ""
+
+
 cd build && cmake -GNinja -DRUN_TESTS=0 -DRUN_COVERAGE=0 .. && ninja
 
 echo " -> Running project"
 ./FirstProjectInCMake
+
