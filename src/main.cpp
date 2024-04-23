@@ -184,7 +184,7 @@ class UDPv6Connection : public Connection
             hints.ai_flags = AI_PASSIVE;
         }
 
-        struct addrinfo *addrinfo = NULL;
+        
         int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &addrinfo);
         if (res != 0)
         {
@@ -192,12 +192,16 @@ class UDPv6Connection : public Connection
             exit(1);
         }
         socket_fd_ = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
-        freeaddrinfo(addrinfo);
+        //freeaddrinfo(addrinfo);
         if (socket_fd_ < 0)
         {
             std::cerr << "Error al crear el socket" << std::endl;
             exit(1);
         }
+    }
+
+    ~UDPv6Connection() {
+        freeaddrinfo(addrinfo);
     }
 
     int getPort()
@@ -209,7 +213,7 @@ class UDPv6Connection : public Connection
     {
 
         // Vincular el socket a la dirección
-        if (::bind(socket_fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        if (::bind(socket_fd_, (struct sockaddr *)&addrinfo, sizeof(addr)) < 0)
         {
             std::cerr << "Error al vincular el socket a la dirección" << std::endl;
             return false;
@@ -232,9 +236,16 @@ class UDPv6Connection : public Connection
 
     bool send(const std::string &message) override
     {
-        std::cout << "UDPv6 " << message << std::endl;
-        // Implementación del método send
+        ssize_t sent_bytes = sendto(socket_fd_, message.c_str(), message.size(), 0, addrinfo->ai_addr, addrinfo->ai_addrlen);
+        if (sent_bytes == -1) {
+            std::cerr << "Error sending data: " << strerror(errno) << std::endl;
+            return false;
+        } else if (static_cast<size_t>(sent_bytes) != message.size()) {
+            std::cerr << "Incomplete data sent" << std::endl;
+            return false;
+        }
         return true;
+
     }
 
     std::string receive() override
@@ -255,6 +266,7 @@ class UDPv6Connection : public Connection
     std::string address_;
     struct sockaddr_in6 addr;
     int socket_fd_ = socket(AF_INET6, SOCK_DGRAM, 0);
+    struct addrinfo *addrinfo = nullptr;
 };
 
 Connection *createConnection(const std::string &address, const std::string &port, bool isBlocking, int protocolMacro)
