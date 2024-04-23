@@ -1,3 +1,7 @@
+/**
+ * @file main.cpp
+ * @brief Implementation of network connection classes and main function for testing.
+ */
 #include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -8,17 +12,30 @@
 #define UDP 2
 #define TCP_BACKLOG 10
 
+/**
+ * @brief Enumeration representing different network protocols.
+ */
 enum class Protocol
 {
-    TCPv4,
-    TCPv6,
-    UDPv4,
-    UDPv6
+    TCPv4, /**< TCP IPv4 protocol. */
+    TCPv6, /**< TCP IPv6 protocol. */
+    UDPv4, /**< UDP IPv4 protocol. */
+    UDPv6  /**< UDP IPv6 protocol. */
 };
 
+/**
+ * @brief Abstract base class representing a network connection.
+ */
 class IConnection
 {
   public:
+    /**
+     * @brief Constructor for IConnection class.
+     *
+     * @param address IP address of the remote host.
+     * @param port Port number for the connection.
+     * @param isBlocking Flag indicating whether the connection is blocking.
+     */
     IConnection(const std::string& address, const std::string& port, bool isBlocking)
         : m_address(address), m_port(port), m_isBlocking(isBlocking)
     {
@@ -28,19 +45,52 @@ class IConnection
     {
     }
 
+    /**
+     * @brief Binds the connection.
+     *
+     * @return True if successful, false otherwise.
+     */
     virtual bool bind() = 0;
+
+    /**
+     * @brief Connects to a remote host.
+     *
+     * @return File descriptor of the connected socket.
+     */
     virtual int connect() = 0;
+
+    /**
+     * @brief Sends data over the connection.
+     *
+     * @param message Message to send.
+     * @return True if successful, false otherwise.
+     */
     virtual bool send(const std::string& message) = 0;
+
+    /**
+     * @brief Receives data from the connection.
+     *
+     * @return Received message.
+     */
     virtual std::string receive() = 0;
+
+    /**
+     * @brief Changes options of the connection.
+     *
+     * @return True if successful, false otherwise.
+     */
     virtual bool changeOptions() = 0;
 
   protected:
-    std::string m_address;
-    std::string m_port;
-    bool m_isBlocking;
-    int m_socket;
+    std::string m_address; /**< IP address of the remote host. */
+    std::string m_port;    /**< Port number for the connection. */
+    bool m_isBlocking;     /**< Flag indicating whether the connection is blocking. */
+    int m_socket;          /**< File descriptor of the socket. */
 };
 
+/**
+ * @brief Class representing a TCP IPv4 connection.
+ */
 class TCPv4Connection : public IConnection
 {
 
@@ -49,6 +99,13 @@ class TCPv4Connection : public IConnection
     bool binded = false;
 
   public:
+    /**
+     * @brief Constructor for TCPv4Connection class.
+     *
+     * @param address IP address of the remote host.
+     * @param port Port number for the connection.
+     * @param isBlocking Flag indicating whether the connection is blocking.
+     */
     TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
         : IConnection(address, port, isBlocking)
     {
@@ -286,14 +343,23 @@ class UDPv6Connection : public IConnection
     // Implement the virtual methods here
 };
 
+/**
+ * @brief Factory function to create a connection object based on the protocol.
+ *
+ * @param address IP address of the remote host.
+ * @param port Port number for the connection.
+ * @param isBlocking Flag indicating whether the connection is blocking.
+ * @param protocolMacro Macro representing the protocol (TCP or UDP).
+ * @return Pointer to the created IConnection object.
+ */
 IConnection* createConnection(const std::string& address, const std::string& port, bool isBlocking, int protocolMacro)
 {
     Protocol protocol;
 
-    // Determinar si la dirección es IPv4 o IPv6
+    // Determine if the address is IPv4 or IPv6
     bool isIPv6 = address.find(':') != std::string::npos;
 
-    // Determinar el protocolo basándose en el macro
+    // Determine the protocol based on the macro
     if (protocolMacro == TCP)
     {
         protocol = isIPv6 ? Protocol::TCPv6 : Protocol::TCPv4;
