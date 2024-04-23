@@ -226,16 +226,70 @@ class TCPv4Connection : public IConnection
 
 class TCPv6Connection : public IConnection
 {
-  public:
+private:
+    struct addrinfo* addrinfo = NULL;
+    int m_socket = -1;
+    bool binded = false;
+
+public:
     TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking)
         : IConnection(address, port, isBlocking)
     {
+        struct addrinfo hints;
+        memset(&hints, 0, sizeof(hints));
+        hints.ai_flags = 0;
+        hints.ai_family = AF_INET6; // IPv6
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
+
+        if (address.empty())
+        {
+            // for listening connections
+            hints.ai_flags = AI_PASSIVE; // ANY_ADDRESS
+        }
+
+        int res = getaddrinfo(address.empty() ? nullptr : address.c_str(), port.c_str(), &hints, &addrinfo);
+
+        if (res != 0)
+        {
+            throw std::runtime_error(gai_strerror(res));
+        }
+                m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
+
+        if (m_socket < 0)
+        {
+            throw std::runtime_error("Error creating socket");
+        }
     }
+
+    ~TCPv6Connection()
+    {
+        close(m_socket);
+        if (addrinfo != NULL)
+        {
+            freeaddrinfo(addrinfo);
+        }
+    }
+
     bool bind() override
     {
-        // Implementación del método bind
+        if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
+        {
+            throw std::runtime_error("Error: cannot bind socket");
+            return false;
+        }
+
+        int res = ::listen(m_socket, TCP_BACKLOG); // Listen for incoming connections.
+        if (res < 0)
+        {
+            throw std::runtime_error("Error: cannot listen on socket");
+            return false;
+        }
+
+        binded = true;
         return true;
     }
+
 
     int connect() override
     {
