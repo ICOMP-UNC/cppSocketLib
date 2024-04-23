@@ -16,15 +16,15 @@ enum class Protocol
     UDPv6
 };
 
-class Connection
+class IConnection
 {
   public:
-    Connection(const std::string& address, const std::string& port, bool isBlocking)
-        : address_(address), port_(port), isBlocking_(isBlocking)
+    IConnection(const std::string& address, const std::string& port, bool isBlocking)
+        : m_address(address), m_port(port), m_isBlocking(isBlocking)
     {
     }
 
-    virtual ~Connection()
+    virtual ~IConnection()
     {
     }
 
@@ -35,21 +35,22 @@ class Connection
     virtual bool changeOptions() = 0;
 
   protected:
-    std::string address_;
-    std::string port_;
-    bool isBlocking_;
-    int socket_fd_;
+    std::string m_address;
+    std::string m_port;
+    bool m_isBlocking;
+    int m_socket;
 };
 
-class TCPv4Connection : public Connection
+class TCPv4Connection : public IConnection
 {
 
   private:
     struct addrinfo* addrinfo = NULL;
+    bool binded = false;
 
   public:
     TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
-        : Connection(address, port, isBlocking)
+        : IConnection(address, port, isBlocking)
     {
         struct addrinfo hints;
         hints.ai_flags = 0;
@@ -70,9 +71,9 @@ class TCPv4Connection : public Connection
             throw std::runtime_error(gai_strerror(res));
         }
 
-        socket_fd_ = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
+        m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
 
-        if (socket_fd_ < 0)
+        if (m_socket < 0)
         {
             throw std::runtime_error("Error creating socket");
         }
@@ -80,44 +81,59 @@ class TCPv4Connection : public Connection
 
     ~TCPv4Connection()
     {
-        close(socket_fd_);
+        close(m_socket);
         freeaddrinfo(addrinfo);
     }
 
     bool bind() override
     {
-        if (::bind(socket_fd_, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
+        if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
         {
             throw std::runtime_error("Error: cannot bind socket");
             return false;
         }
 
-        return true;
-    }
-
-    int connect() override
-    {
-        int res = ::listen(socket_fd_, TCP_BACKLOG); // Escuchar conexiones entrantes
+        int res = ::listen(m_socket, TCP_BACKLOG); // Escuchar conexiones entrantes
         if (res < 0)
         {
             throw std::runtime_error("Error: cannot listen on socket");
             return false;
         }
 
-        int client_fd = ::accept(socket_fd_, NULL, NULL); // Aceptar una conexión entrante
-        if (client_fd < 0)
+        binded = true;
+
+        return true;
+    }
+
+    int connect() override
+    {
+        if (binded)
         {
-            throw std::runtime_error("Error: cannot accept connection");
-            return true;
+            // for server accept new connection
+            int client_fd = ::accept(m_socket, NULL, NULL); // Aceptar una conexión entrante
+            if (client_fd < 0)
+            {
+                throw std::runtime_error("Error: cannot accept connection");
+                return false;
+            }
+
+            return client_fd;
         }
 
-        return client_fd;
+        // connect client
+        if (::connect(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) == -1)
+        {
+            throw std::runtime_error("Error: cannot connect");
+            return false;
+        }
+
+        return true;
     }
 
     bool send(const std::string& message) override
     {
         const char* messagePtr = message.c_str();
-        int n = ::send(socket_fd_, messagePtr, message.size(), 0); // contesta al cliente mediante el mismo fd
+        int n = ::send(m_socket, messagePtr, message.size(), 0); // contesta al cliente mediante el mismo fd
         if (n < 0)
         {
             throw std::runtime_error("Error: message sending failure");
@@ -151,10 +167,11 @@ class TCPv4Connection : public Connection
     // Implement the virtual methods here
 };
 
-class TCPv6Connection : public Connection
+class TCPv6Connection : public IConnection
 {
   public:
-    TCPv6Connection(const std::string& address, int port, bool isBlocking) : Connection(address, port, isBlocking)
+    TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking)
+        : IConnection(address, port, isBlocking)
     {
     }
     bool bind() override
@@ -190,10 +207,11 @@ class TCPv6Connection : public Connection
     // Implement the virtual methods here
 };
 
-class UDPv4Connection : public Connection
+class UDPv4Connection : public IConnection
 {
   public:
-    UDPv4Connection(const std::string& address, int port, bool isBlocking) : Connection(address, port, isBlocking)
+    UDPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
+        : IConnection(address, port, isBlocking)
     {
     }
     bool bind() override
@@ -228,10 +246,11 @@ class UDPv4Connection : public Connection
     // Implement the virtual methods here
 };
 
-class UDPv6Connection : public Connection
+class UDPv6Connection : public IConnection
 {
   public:
-    UDPv6Connection(const std::string& address, int port, bool isBlocking) : Connection(address, port, isBlocking)
+    UDPv6Connection(const std::string& address, const std::string& port, bool isBlocking)
+        : IConnection(address, port, isBlocking)
     {
     }
     bool bind() override
@@ -267,7 +286,7 @@ class UDPv6Connection : public Connection
     // Implement the virtual methods here
 };
 
-Connection* createConnection(const std::string& address, int port, bool isBlocking, int protocolMacro)
+IConnection* createConnection(const std::string& address, const std::string& port, bool isBlocking, int protocolMacro)
 {
     Protocol protocol;
 
@@ -305,10 +324,10 @@ Connection* createConnection(const std::string& address, int port, bool isBlocki
 
 int main()
 {
-    Connection* con1 = createConnection("::1", 8080, false, TCP);
-    Connection* con2 = createConnection("::1", 8080, false, UDP);
-    Connection* con3 = createConnection("127.0.0.1", 8080, false, TCP);
-    Connection* con4 = createConnection("127.0.0.1", 8080, false, UDP);
+    IConnection* con1 = createConnection("::1", "8080", false, TCP);
+    IConnection* con2 = createConnection("::1", "8080", false, UDP);
+    IConnection* con3 = createConnection("127.0.0.1", "8080", false, TCP);
+    IConnection* con4 = createConnection("127.0.0.1", "8080", false, UDP);
 
     con1->send("Hola");
     con2->send("Hola");
