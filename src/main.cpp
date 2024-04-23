@@ -220,7 +220,13 @@ class UDPv6Connection : public Connection
 
     bool connect() override
     {
-        // Implementación del método connect
+        // Conectar el socket a la dirección
+        if (::connect(socket_fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        {
+            std::cerr << "Error al conectar el socket a la dirección" << std::endl;
+            return false;
+        }
+
         return true;
     }
 
