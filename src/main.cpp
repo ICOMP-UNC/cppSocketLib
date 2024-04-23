@@ -293,14 +293,34 @@ public:
 
     int connect() override
     {
-        // Implementación del método connect
+        if (binded)
+        {
+            int client_fd = ::accept(m_socket, NULL, NULL);
+            if (client_fd < 0)
+            {
+                throw std::runtime_error("Error: cannot accept connection");
+                return false;
+            }
+            return client_fd;
+        }
+
+        if (::connect(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) == -1)
+        {
+            throw std::runtime_error("Error: cannot connect");
+            return false;
+        }
         return true;
     }
 
     bool send(const std::string& message) override
     {
-        // Implementación del método send
-        std::cout << "TCPv6 " << message << std::endl;
+        const char* messagePtr = message.c_str();
+        int n = ::send(m_socket, messagePtr, message.size(), 0);
+        if (n < 0)
+        {
+            throw std::runtime_error("Error: message sending failure");
+            return false;
+        }
         return true;
     }
 
