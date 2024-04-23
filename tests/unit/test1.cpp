@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-int suma(int a, int b) {
+int sum(int a, int b) {
     return a + b;
 }
 
-TEST(SumaTest, SumaBasica) {
+TEST(sumTest, basicSum) {
     int a = 3;
     int b = 5;
 
-    int resultado = suma(a, b);
+    int result = sum(a, b);
 
-    EXPECT_EQ(resultado, 8);
+    EXPECT_EQ(result, 8);
 }
 
 int main(int argc, char **argv) {
