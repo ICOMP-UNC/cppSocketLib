@@ -9,8 +9,8 @@ project(
 )
 
 # Enable testing with CTest which is integrated with GTest
-# include(CTest)
-# enable_testing()
+include(CTest)
+enable_testing()
 
 # Define the C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -25,13 +25,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd lsp
 include_directories(include)
 
 # To automatically download external dependencies, use `FetchContent`
-# include(FetchContent)
+include(FetchContent)
 
 # Configure FetchContent to download Google Test
-# set(GTEST_GIT_URL "https://github.com/google/googletest.git")
+set(GTEST_GIT_URL "https://github.com/google/googletest.git")
 
 # Enable debug
+<<<<<<< HEAD
 set(FETCHCONTENT_QUIET OFF)
+=======
+set(FETCHCONTENT_QUIET ON)
+>>>>>>> 40c66ae (smart pointer - test example)
 
 FetchContent_Declare(
   googletest
@@ -49,7 +53,6 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")  # Change from *.c to *.cpp
 add_library(${PROJECT_NAME} ${SOURCES})
 
 # Setup Google Test
-
 if((RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1) AND BUILD_TESTING)  # This is set by enable_testing()
   add_subdirectory(tests)
 

@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <thread>
 #include <unistd.h>
+#include <wait.h>
 
 #define TCP 1             /**< use TCP protocol flag. */
 #define UDP 2             /**< use UDP protocol flag. */
@@ -186,7 +187,7 @@ class TCPv4Connection : public IConnection
     bool changeOptions() override;
 
   private:
-    struct addrinfo* addrinfo = NULL;
+    std::unique_ptr<addrinfo> m_addrinfo;
     bool binded = false;
 };
 

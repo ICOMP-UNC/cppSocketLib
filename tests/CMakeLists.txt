@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(tests)
 
+<<<<<<< HEAD
 # Collect tests
 file(GLOB TESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/unit/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/cppSocketLib.cpp)
 
@@ -36,3 +37,17 @@ target_link_libraries(tests gtest gtest_main) # Link with Google Test
 
 # Add test
 add_test(NAME test_${PROJECT_NAME} COMMAND tests) # Use the target name 'tests' for the command
+=======
+include_directories(${PROJECT_SOURCE_DIR}/../include)
+
+link_directories(${PROJECT_SOURCE_DIR}/../src)
+
+file(GLOB TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/unit/*.cpp)
+
+add_executable(tests ${TEST_FILES})
+
+target_link_libraries(tests gtest gtest_main) # Enlaza con Google Test
+
+add_test(NAME test_${PROJECT_NAME} COMMAND tests)
+
+>>>>>>> 40c66ae (smart pointer - test example)

@@ -15,7 +15,6 @@
  */
 
 #include "main.hpp"
-#include "wait.h"
 
 IConnection::IConnection(const std::string& address, const std::string& port, bool isBlocking)
     : m_address(address), m_port(port), m_isBlocking(isBlocking)
@@ -41,14 +40,17 @@ TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& 
         hints.ai_flags = AI_PASSIVE; // ANY_ADDRESS
     }
 
-    int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &addrinfo);
+    addrinfo* raw_addrinfo = nullptr;
+    int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &raw_addrinfo);
 
     if (res != 0)
     {
         throw std::runtime_error(gai_strerror(res));
     }
 
-    m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
+    m_addrinfo = std::unique_ptr<addrinfo>(raw_addrinfo);
+
+    m_socket = socket(m_addrinfo->ai_family, m_addrinfo->ai_socktype, m_addrinfo->ai_protocol);
 
     if (m_socket < 0)
     {
@@ -59,12 +61,11 @@ TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& 
 TCPv4Connection::~TCPv4Connection()
 {
     close(m_socket);
-    freeaddrinfo(addrinfo);
 }
 
 bool TCPv4Connection::bind()
 {
-    if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
+    if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
     {
         throw std::runtime_error("Error: cannot bind socket");
     }
@@ -95,7 +96,7 @@ int TCPv4Connection::connect()
     }
 
     // connect client
-    if (::connect(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) == -1)
+    if (::connect(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) == -1)
     {
         throw std::runtime_error("Error: cannot connect");
     }
