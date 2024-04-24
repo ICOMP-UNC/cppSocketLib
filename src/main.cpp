@@ -170,14 +170,14 @@ class UDPConnection : public IConnection {
 
     int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &addrinfo);
     if (res != 0) {
-      std::cerr << "Error al obtener la dirección" << std::endl;
+      std::cerr << "Error getting address" << std::endl;
       exit(1);
     }
     m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype,
                         addrinfo->ai_protocol);
     // freeaddrinfo(addrinfo);
     if (m_socket< 0) {
-      std::cerr << "Error al crear el socket" << std::endl;
+      std::cerr << "Error creating socket" << std::endl;
       exit(1);
     }
     if (!isBlocking) {
@@ -189,9 +189,9 @@ class UDPConnection : public IConnection {
   ~UDPConnection() { freeaddrinfo(addrinfo); }
 
   bool bind() override {
-    // Vincular el socket a la dirección
+    // Bind socket to address
     if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0) {
-      throw std::runtime_error("Error al vincular el socket a la dirección: ");
+      throw std::runtime_error("Error binding socket to address: ");
       return false;
     }
 
@@ -199,9 +199,9 @@ class UDPConnection : public IConnection {
   }
 
   int connect() override {
-    // Conectar el socket a la dirección
+    // Connect socket to address
     if (::connect(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0) {
-      throw std::runtime_error("Error al obtener la dirección");
+      throw std::runtime_error("Error getting address");
       return false;
     }
 
@@ -222,7 +222,6 @@ class UDPConnection : public IConnection {
   }
 
   std::string receive() override {
-    // Implementación del método receive
 
     char recv_message[MESSAGE_SIZE];
     memset(recv_message, 0, MESSAGE_SIZE);
