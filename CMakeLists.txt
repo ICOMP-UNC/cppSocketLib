@@ -50,7 +50,7 @@ if((RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1) AND BUILD_TESTING)  # This is set
   add_subdirectory(tests)
 
   # Collect test source files
-  file(GLOB_RECURSE TEST_SOURCES "tests/unit/*.cpp")
+  file(GLOB_RECURSE TEST_SOURCES "tests/unit/*.cpp" "src/cppSocketLib.cpp")
 
   # Link Google Test to the test executable
   add_executable(unit_tests ${TEST_SOURCES})

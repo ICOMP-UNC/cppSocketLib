@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(tests)
 
 # Collect tests
-file(GLOB TESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/unit/*.cpp)
+file(GLOB TESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/unit/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/cppSocketLib.cpp)
 
 # Ensure these paths are correct
 include_directories(${PROJECT_SOURCE_DIR}/../src)
