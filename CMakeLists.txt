@@ -2,29 +2,33 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 # Define your project and specify the use of C++.
 project(
-  "FirstProjectInCMake"
+  "SocketWrapper"
   VERSION 1.0.0
-  DESCRIPTION "CMake C++ Project Template for Operating Systems II"
-  LANGUAGES CXX  # Change from C to C++
+  DESCRIPTION "Socket Wrapper for c++"
+  LANGUAGES CXX
 )
 
 # Enable testing with CTest which is integrated with GTest
-include(CTest)
-enable_testing()
+# include(CTest)
+# enable_testing()
 
 # Define the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+<<<<<<< HEAD
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=maybe-uninitialized")
+=======
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd lsp
+>>>>>>> e1ed765 (created main.hpp - created minimal main functionality for TCPv4)
 
 # Include the `include` directory, where the headers are located
 include_directories(include)
 
 # To automatically download external dependencies, use `FetchContent`
-include(FetchContent)
+# include(FetchContent)
 
 # Configure FetchContent to download Google Test
-set(GTEST_GIT_URL "https://github.com/google/googletest.git")
+# set(GTEST_GIT_URL "https://github.com/google/googletest.git")
 
 # Enable debug
 set(FETCHCONTENT_QUIET OFF)
