@@ -4,6 +4,8 @@ project(tests)
 # Collect tests
 file(GLOB TESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/unit/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/cppSocketLib.cpp)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+
 # Ensure these paths are correct
 include_directories(${PROJECT_SOURCE_DIR}/../src)
 link_directories(${PROJECT_SOURCE_DIR}/../src)
