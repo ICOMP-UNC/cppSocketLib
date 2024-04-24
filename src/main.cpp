@@ -141,9 +141,9 @@ class UDPConnection : public IConnection {
       exit(1);
     }
     m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype,
-                        addrinfo->ai_protocol);
+                      addrinfo->ai_protocol);
     // freeaddrinfo(addrinfo);
-    if (m_socket< 0) {
+    if (m_socket < 0) {
       std::cerr << "Error creating socket" << std::endl;
       exit(1);
     }
@@ -189,7 +189,6 @@ class UDPConnection : public IConnection {
   }
 
   std::string receive() override {
-
     char recv_message[MESSAGE_SIZE];
     memset(recv_message, 0, MESSAGE_SIZE);
 
