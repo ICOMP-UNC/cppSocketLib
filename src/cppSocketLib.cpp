@@ -113,12 +113,13 @@ UDPConnection::UDPConnection(const std::string& address, const std::string& port
     }
 
     addrinfo* rawAddrinfo = nullptr; // Raw pointer to store the result of getaddrinfo
-    int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &rawAddrinfo);
-    if (res != 0)
+
+    const auto addrInfo = getaddrinfo(address.c_str(), port.c_str(), &hints, &rawAddrinfo);
+    if (addrInfo != 0)
     {
-        std::cerr << "Error getting address" << std::endl;
-        exit(1);
+        throw std::runtime_error ("Error getting address");
     }
+    
     m_addrinfo = std::unique_ptr<addrinfo>(rawAddrinfo); // Wrap raw pointer in the smart pointer
 
     m_socket = socket(m_addrinfo->ai_family, m_addrinfo->ai_socktype, m_addrinfo->ai_protocol);
@@ -149,7 +150,6 @@ bool UDPConnection::bind()
     if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
     {
         throw std::runtime_error("Error binding socket to address: ");
-        return false;
     }
 
     return true;
@@ -184,23 +184,25 @@ bool UDPConnection::send(const std::string& message)
 
 std::string UDPConnection::receive()
 {
-    std::vector<char> recvMessage(MESSAGE_LENGTH, 0);
+    std::vector<char> recvMessage;
+
+    recvMessage.reserve(MAX_MESSAGE_LENGTH);
 
     int bytesReceived = ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
 
     if (bytesReceived < 0)
     {
-        std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
+        const auto errorMessage = std::string("Error receiving data: ") + strerror(errno);
+        throw std::runtime_error (errorMessage);
     }
+    recvMessage.resize(bytesReceived);
 
-    return std::string(recvMessage.begin(), recvMessage.begin() + bytesReceived);
+    return std::string(recvMessage.begin(), recvMessage.end());
+
 }
-
 bool UDPConnection::changeOptions()
 {
-    // Implementación del método changeOptions
-    return true;
+     throw std::runtime_error ("Not implemented");
 }
 
 std::unique_ptr<IConnection> createConnection(const std::string& address, const std::string& port, bool isBlocking,

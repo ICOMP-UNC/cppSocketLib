@@ -16,10 +16,10 @@
 #include <thread>
 #include <vector>
 
-#define TCP 1                 // Macro for TCP
-#define UDP 2                 // Macro for UDP
-#define ERROR -1              // Macro for error
-#define MESSAGE_LENGTH 10000  // Macro for message length
+constexpr auto TCP = 1;                 // Macro for TCP
+constexpr auto UDP = 2;                 // Macro for UDP
+constexpr auto ERROR = -1;              // Macro for error
+constexpr auto MAX_MESSAGE_LENGTH = 10000;  // Macro for message length
 
 /**
  * @brief Enumeration representing different network protocols.
