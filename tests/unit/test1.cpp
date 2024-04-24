@@ -1,34 +1,13 @@
 #include <gtest/gtest.h>
+#include "cppSocketLib.hpp"
 
-int sum(int a, int b)
-{
-    return a + b;
+
+TEST(TCPConnectionTestIPv4, BindSuccess) {
+    TCPv4Connection conn = TCPv4Connection("127.0.0.1","8080",false);
+    
 }
 
-int subtract(int a, int b)
-{
-    return a - b;
-}
 
-TEST(sumTest, basicSum)
-{
-    int a = 3;
-    int b = 5;
-
-    int result = sum(a, b);
-
-    EXPECT_EQ(result, 8);
-}
-
-TEST(subtractTest, basicSubtraction)
-{
-    int a = 5;
-    int b = 3;
-
-    int result = subtract(a, b);
-
-    EXPECT_EQ(result, 2);
-}
 
 int main(int argc, char** argv)
 {

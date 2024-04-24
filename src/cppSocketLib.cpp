@@ -28,35 +28,136 @@ IConnection::~IConnection()
 TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
     : IConnection(address, port, isBlocking)
 {
-    // Implementación del constructor aquí
+    struct addrinfo hints;
+    hints.ai_flags = 0;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    if (address.empty())
+    {
+        // for listening connections
+        hints.ai_flags = AI_PASSIVE; // ANY_ADDRESS
+    }
+
+    addrinfo* raw_addrinfo = nullptr;
+    int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &raw_addrinfo);
+
+    if (res != 0)
+    {
+        throw std::runtime_error(gai_strerror(res));
+    }
+
+    m_addrinfo = std::unique_ptr<addrinfo>(raw_addrinfo);
+
+    m_socket = socket(m_addrinfo->ai_family, m_addrinfo->ai_socktype, m_addrinfo->ai_protocol);
+
+    if (m_socket < 0)
+    {
+        throw std::runtime_error("Error creating socket");
+    }
+}
+
+TCPv4Connection::~TCPv4Connection()
+{
+    close(m_socket);
 }
 
 bool TCPv4Connection::bind()
 {
-    // Implementación del método bind
+    if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
+    {
+        throw std::runtime_error("Error: cannot bind socket");
+    }
+
+    int res = ::listen(m_socket, TCP_BACKLOG); // Escuchar conexiones entrantes
+    if (res < 0)
+    {
+        throw std::runtime_error("Error: cannot listen on socket");
+    }
+
+    binded = true;
+
     return true;
 }
 
 int TCPv4Connection::connect()
 {
-    // Implementación del método connect
-    return 0;
-}
-int TCPv4Connection::getSocket()
-{
-    return 0;
+    if (binded)
+    {
+        // for server accept new connection
+        int client_fd = ::accept(m_socket, NULL, NULL); // Aceptar una conexión entrante
+        if (client_fd < 0)
+        {
+            throw std::runtime_error("Error: cannot accept connection");
+        }
+
+        return client_fd;
+    }
+
+    // connect client
+    if (::connect(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) == -1)
+    {
+        throw std::runtime_error("Error: cannot connect");
+    }
+
+    return true;
 }
 
 bool TCPv4Connection::send(const std::string& message)
 {
-    // Implementación del método send
+    const char* messagePtr = message.c_str();
+    int n = ::send(m_socket, messagePtr, message.size(), 0); // contesta al cliente mediante el mismo fd
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: message sending failure");
+    }
     return true;
+}
+
+bool TCPv4Connection::sendto(const std::string& message, int fdDestiny)
+{
+    const char* messagePtr = message.c_str();
+    int n = ::send(fdDestiny, messagePtr, message.size(), 0); // contesta al cliente mediante el mismo fd
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: message sending failure");
+    }
+    return true;
+}
+
+std::string TCPv4Connection::receiveFrom(int socket)
+{
+    char buffer[MESSAGE_SIZE] = "";
+
+    int n = ::recv(socket, buffer, sizeof(buffer) - 1, 0);
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: failed to receive message");
+    }
+    else if (n == 0)
+    {
+        throw std::runtime_error("Connection closed by peer");
+    }
+
+    return std::string(buffer, n);
 }
 
 std::string TCPv4Connection::receive()
 {
-    // Implementación del método receive
-    return "";
+    char buffer[MESSAGE_SIZE] = "";
+
+    int n = ::recv(m_socket, buffer, sizeof(buffer) - 1, 0);
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: failed to receive message");
+    }
+    else if (n == 0)
+    {
+        throw std::runtime_error("Connection closed by peer");
+    }
+
+    return std::string(buffer, n);
 }
 
 bool TCPv4Connection::changeOptions()
@@ -65,39 +166,124 @@ bool TCPv4Connection::changeOptions()
     return true;
 }
 
+
 TCPv6Connection::TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking)
     : IConnection(address, port, isBlocking)
 {
-    // Implementación del constructor aquí
+    struct addrinfo hints;
+    hints.ai_flags = 0;
+    hints.ai_family = AF_INET6; // IPv6
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    if (address.empty())
+    {
+        // for listening connections
+        hints.ai_flags = AI_PASSIVE; // ANY_ADDRESS
+    }
+
+    int res = getaddrinfo(address.empty() ? nullptr : address.c_str(), port.c_str(), &hints, &addrinfo);
+
+    if (res != 0)
+    {
+        throw std::runtime_error(gai_strerror(res));
+    }
+    m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
+
+    if (m_socket < 0)
+    {
+        throw std::runtime_error("Error creating socket");
+    }
+}
+
+TCPv6Connection::~TCPv6Connection()
+{
+    close(m_socket);
+    if (addrinfo != NULL)
+    {
+        freeaddrinfo(addrinfo);
+    }
 }
 
 bool TCPv6Connection::bind()
 {
-    // Implementación del método bind
-    return true;
-}
+    if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
+    {
+        throw std::runtime_error("Error: cannot bind socket");
+    }
 
-int TCPv6Connection::getSocket()
-{
-    return 0;
+    int res = ::listen(m_socket, TCP_BACKLOG); // Listen for incoming connections.
+    if (res < 0)
+    {
+        throw std::runtime_error("Error: cannot listen on socket");
+    }
+
+    binded = true;
+    return true;
 }
 
 int TCPv6Connection::connect()
 {
-    // Implementación del método connect
-    return 0;
+    if (binded)
+    {
+        int client_fd = ::accept(m_socket, NULL, NULL);
+        if (client_fd < 0)
+        {
+            throw std::runtime_error("Error: cannot accept connection");
+        }
+        return client_fd;
+    }
+
+    if (::connect(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) == -1)
+    {
+        throw std::runtime_error("Error: cannot connect");
+    }
+    return true;
 }
 
 bool TCPv6Connection::send(const std::string& message)
 {
-    // Implementación del método send
+    const char* messagePtr = message.c_str();
+    int n = ::send(m_socket, messagePtr, message.size(), 0);
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: message sending failure");
+    }
     return true;
+}
+
+std::string TCPv6Connection::receiveFrom(int socket)
+{
+    char buffer[MESSAGE_SIZE] = "";
+
+    int n = ::recv(socket, buffer, sizeof(buffer) - 1, 0);
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: failed to receive message");
+    }
+    else if (n == 0)
+    {
+        throw std::runtime_error("Connection closed by peer");
+    }
+
+    return std::string(buffer, n);
 }
 
 std::string TCPv6Connection::receive()
 {
-    // Implementación del método receive
-    return "";
+    char buffer[MESSAGE_SIZE] = "";
+
+    int n = ::recv(m_socket, buffer, sizeof(buffer) - 1, 0);
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: failed to receive message");
+    }
+    else if (n == 0)
+    {
+        throw std::runtime_error("Connection closed by peer");
+    }
+
+    return std::string(buffer, n);
 }
 
 bool TCPv6Connection::changeOptions()

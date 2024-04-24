@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Socket Library - cppSocketWrapper
+=======
+ * DatabaseManagment - cppSocketWrapper
+>>>>>>> 4005dc7 (Added a main.cpp because cppSocketLib is a librery. undefined reference to destructor in test.)
  * Copyright (C) 2024, Operating Systems II.
  * Apr 23, 2024.
  *
@@ -119,119 +123,140 @@ class IConnection {
 /**
  * @brief Class representing a TCP IPv4 connection.
  */
-class TCPv4Connection : public IConnection {
- public:
-  /**
-   * @brief Construct a new TCPv4Connection object.
-   *
-   * @param address IP address of the connection.
-   * @param port Port number of the connection.
-   * @param isBlocking Flag to set the connection as blocking or non-blocking.
-   */
-  TCPv4Connection(const std::string &address, const std::string &port,
-                  bool isBlocking);
+class TCPv4Connection : public IConnection
+{
+  public:
+    /**
+     * @brief Constructor for TCPv4Connection class.
+     *
+     * @param address IP address of the remote host.
+     * @param port Port number for the connection.
+     * @param isBlocking Flag indicating whether the connection is blocking.
+     */
+    TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking);
 
-  /**
-   * @brief Bind the connection to a socket.
-   *
-   * @return true if the connection is successfully binded, false otherwise.
-   */
-  bool bind() override;
+    ~TCPv4Connection();
 
-  /**
-   * @brief Connect the connection to a socket.
-   *
-   * @return int File descriptor of the socket.
-   */
-  int connect() override;
+    /**
+     * @brief Bind the connection to a socket.
+     *
+     * @return true if the connection is successfully binded, false otherwise.
+     */
+    bool bind() override;
 
-  /**
-   * @brief Send a message through the connection.
-   *
-   * @param message Message to be sent.
-   * @return true if the message is successfully sent, false otherwise.
-   */
-  bool send(const std::string &message) override;
+    /**
+     * @brief Connect the connection to a socket.
+     *
+     * @return int File descriptor of the socket.
+     */
+    int connect() override;
 
-  /**
-   * @brief Receive a message through the connection.
-   *
-   * @return std::string Received message.
-   */
-  std::string receive() override;
+    /**
+     * @brief Send a message through the connection.
+     *
+     * @param message Message to be sent.
+     * @return true if the message is successfully sent, false otherwise.
+     */
+    bool send(const std::string& message) override;
 
-  /**
-   * @brief Change the options of the connection.
-   *
-   * @return true if the options are successfully changed, false otherwise.
-   */
-  bool changeOptions() override;
+    /**
+     * @brief Send a message through a specific socket.
+     *
+     * @param message Message to be sent.
+     * @param fdDestiny socket file descriptor to use to send message.
+     * @return true if the message is successfully sent, false otherwise.
+     */
+    bool sendto(const std::string& message, int fdDestiny);
 
-  /**
-   * @brief Get the socket file descriptor.
-   *
-   * @return int File descriptor of the socket.
-   */
-  int getSocket() override;
+    /**
+     * @brief Receive a message through the connection.
+     *
+     * @return std::string Received message.
+     */
+    std::string receive() override;
+
+    /**
+     * @brief Receive a message through a specific socket
+     *
+     * @return std::string Received message.
+     */
+    std::string receiveFrom(int socket);
+
+    /**
+     * @brief Change the options of the connection.
+     *
+     * @return true if the options are successfully changed, false otherwise.
+     */
+    bool changeOptions() override;
+
+  private:
+    std::unique_ptr<addrinfo> m_addrinfo;
+    bool binded = false;
 };
 
 /**
  * @brief Class representing a TCP IPv6 connection.
  */
-class TCPv6Connection : public IConnection {
- public:
-  /**
-   * @brief Construct a new TCPv6Connection object.
-   *
-   * @param address IP address of the connection.
-   * @param port Port number of the connection.
-   * @param isBlocking Flag to set the connection as blocking or non-blocking.
-   */
-  TCPv6Connection(const std::string &address, const std::string &port,
-                  bool isBlocking);
+class TCPv6Connection : public IConnection
+{
+  public:
+    /**
+     * @brief Construct a new TCPv6Connection object.
+     *
+     * @param address IP address of the connection.
+     * @param port Port number of the connection.
+     * @param isBlocking Flag to set the connection as blocking or non-blocking.
+     */
+    TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking);
 
-  /**
-   * @brief Bind the connection to a socket.
-   *
-   * @return true if the connection is successfully binded, false otherwise.
-   */
-  bool bind() override;
+    ~TCPv6Connection();
 
-  /**
-   * @brief Connect the connection to a socket.
-   *
-   * @return int File descriptor of the socket.
-   */
-  int connect() override;
+    /**
+     * @brief Bind the connection to a socket.
+     *
+     * @return true if the connection is successfully binded, false otherwise.
+     */
+    bool bind() override;
 
-  /**
-   * @brief Send a message through the connection.
-   *
-   * @param message Message to be sent.
-   * @return true if the message is successfully sent, false otherwise.
-   */
-  bool send(const std::string &message) override;
+    /**
+     * @brief Connect the connection to a socket.
+     *
+     * @return int File descriptor of the socket.
+     */
+    int connect() override;
 
-  /**
-   * @brief Receive a message through the connection.
-   *
-   * @return std::string Received message.
-   */
-  std::string receive() override;
+    /**
+     * @brief Send a message through the connection.
+     *
+     * @param message Message to be sent.
+     * @return true if the message is successfully sent, false otherwise.
+     */
+    bool send(const std::string& message) override;
 
-  /**
-   * @brief Change the options of the connection.
-   *
-   * @return true if the options are successfully changed, false otherwise.
-   */
-  bool changeOptions() override;
+    /**
+     * @brief Receive a message through the connection.
+     *
+     * @return std::string Received message.
+     */
+    std::string receive() override;
 
-  /**
-   * @brief Get the socket file descriptor.
-   *
-   * @return int File descriptor of the socket.
-   */
-  int getSocket() override;
+    /**
+     * @brief Receive a message through a specific socket
+     *
+     * @return std::string Received message.
+     */
+    std::string receiveFrom(int socket);
+
+    /**
+     * @brief Change the options of the connection.
+     *
+     * @return true if the options are successfully changed, false otherwise.
+     */
+    bool changeOptions() override;
+
+  private:
+    struct addrinfo* addrinfo = NULL;
+    bool binded = false;
 };
 
 /**
