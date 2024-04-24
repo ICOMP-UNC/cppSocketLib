@@ -14,6 +14,8 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <stdexcept>
+
 
 #define TCP 1              // Macro for TCP
 #define UDP 2              // Macro for UDP
@@ -269,7 +271,7 @@ class UDPConnection : public IConnection {
   bool changeOptions() override;
 
  private:
-  struct addrinfo *addrinfo;
+  std::unique_ptr<addrinfo> m_addrinfo; // Smart pointer for addrinfo
   int m_socket;
 };
 
@@ -282,7 +284,7 @@ class UDPConnection : public IConnection {
  * @param protocolMacro Macro representing the network protocol.
  * @return IConnection* Pointer to the created connection.
  */
-IConnection *createConnection(const std::string &address,
+std::unique_ptr<IConnection> createConnection(const std::string &address,
                               const std::string &port, bool isBlocking,
                               int protocolMacro);
 

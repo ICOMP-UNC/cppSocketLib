@@ -1,127 +1,79 @@
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
+#include "libraryCpp.hpp"
 
-#include <cstring>
-#include <iostream>
-#include <memory>
-#include <string>
-#include <thread>
 
-#define TCP 1
-#define UDP 2
-#define ERROR -1
-#define MESSAGE_SIZE 1024
+IConnection::IConnection(const std::string &address, const std::string &port, 
+                              bool isBlocking) : address_(address), m_port_(port), isBlocking_(isBlocking) {}
 
-enum class Protocol
-{
-    TCPv4,
-    TCPv6,
-    UDPv4,
-    UDPv6
-};
+IConnection::~IConnection() {}
 
-class IConnection {
- public:
-  IConnection(const std::string &address, const std::string &port,
-              bool isBlocking)
-      : address_(address), m_port_(port), isBlocking_(isBlocking) {}
+int IConnection::getSocket() { return socket_fd_; }
 
-  virtual ~IConnection() {}
+TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking) 
+  : IConnection(address, port, isBlocking) {
+  // Implementación del constructor aquí
+}
 
-  virtual bool bind() = 0;
-  virtual int connect() = 0;
-  virtual bool send(const std::string &message) = 0;
-  virtual std::string receive() = 0;
-  virtual bool changeOptions() = 0;
 
-  int getSocket() { return socket_fd_; }
-
- protected:
-  std::string address_;
-  std::string m_port_;
-  bool isBlocking_;
-  int socket_fd_;
-};
-
-class TCPv4Connection : public IConnection {
- public:
-  TCPv4Connection(const std::string &address, const std::string &port,
-                  bool isBlocking)
-      : IConnection(address, port, isBlocking) {}
-  bool bind() override {
+bool TCPv4Connection::bind() {
     // Implementación del método bind
     return true;
-  }
+}
 
-  int connect() override {
+int TCPv4Connection::connect() {
     // Implementación del método connect
-    return true;
-  }
+    return 0;
+}
 
-  bool send(const std::string &message) override {
-    std::cout << "TCPv4 " << message << std::endl;
+bool TCPv4Connection::send(const std::string &message) {
     // Implementación del método send
     return true;
-  }
+}
 
-  std::string receive() override {
+std::string TCPv4Connection::receive() {
     // Implementación del método receive
-    static std::string message = "message";
-    return message;
-  }
+    return "";
+}
 
-  bool changeOptions() override {
+bool TCPv4Connection::changeOptions() {
     // Implementación del método changeOptions
     return true;
-  }
-  // Implement the virtual methods here
-};
+}
 
-class TCPv6Connection : public IConnection {
- public:
-  TCPv6Connection(const std::string &address, const std::string &port,
-                  bool isBlocking)
-      : IConnection(address, port, isBlocking) {}
-  bool bind() override {
+TCPv6Connection::TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking) 
+  : IConnection(address, port, isBlocking) {
+  // Implementación del constructor aquí
+}
+
+bool TCPv6Connection::bind() {
     // Implementación del método bind
     return true;
-  }
+}
 
-  int connect() override {
+int TCPv6Connection::connect() {
     // Implementación del método connect
-    return true;
-  }
+    return 0;
+}
 
-  bool send(const std::string &message) override {
+bool TCPv6Connection::send(const std::string &message) {
     // Implementación del método send
-    std::cout << "TCPv6 " << message << std::endl;
     return true;
-  }
+}
 
-  std::string receive() override {
+std::string TCPv6Connection::receive() {
     // Implementación del método receive
-    static std::string message = "message";
-    return message;
-  }
+    return "";
+}
 
-  bool changeOptions() override {
+bool TCPv6Connection::changeOptions() {
     // Implementación del método changeOptions
     return true;
-  }
-  // Implement the virtual methods here
-};
+}
 
-class UDPConnection : public IConnection {
- public:
-  UDPConnection(const std::string &address, const std::string &port,
-                bool isBlocking)
-      : IConnection(address, port, isBlocking) {
+UDPConnection::UDPConnection(const std::string &address, const std::string &port, bool isBlocking) : IConnection(address, port, isBlocking) {
+    
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
+
     bool isIPv6 = address.find(':') != std::string::npos;
     if (isIPv6) {
       hints.ai_family = AF_INET6;
@@ -135,14 +87,17 @@ class UDPConnection : public IConnection {
       hints.ai_flags = AI_PASSIVE;
     }
 
-    int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &addrinfo);
+    addrinfo* raw_addrinfo = nullptr; // Raw pointer to store the result of getaddrinfo
+    int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &raw_addrinfo);
     if (res != 0) {
       std::cerr << "Error getting address" << std::endl;
       exit(1);
     }
-    m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype,
-                      addrinfo->ai_protocol);
-    // freeaddrinfo(addrinfo);
+    m_addrinfo = std::unique_ptr<addrinfo>(raw_addrinfo); // Wrap raw pointer in the smart pointer
+
+    m_socket = socket(m_addrinfo->ai_family, m_addrinfo->ai_socktype,
+                      m_addrinfo->ai_protocol);
+    
     if (m_socket < 0) {
       std::cerr << "Error creating socket" << std::endl;
       exit(1);
@@ -151,48 +106,49 @@ class UDPConnection : public IConnection {
       int flags = fcntl(m_socket, F_GETFL, 0);
       fcntl(m_socket, F_SETFL, flags | O_NONBLOCK);
     }
-  }
+}
 
-  ~UDPConnection() { freeaddrinfo(addrinfo); }
+UDPConnection::~UDPConnection() { 
+}
 
-  bool bind() override {
+bool UDPConnection::bind() {
     // Bind socket to address
-    if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0) {
+    if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0) {
       throw std::runtime_error("Error binding socket to address: ");
       return false;
     }
 
     return true;
-  }
+}
 
-  int connect() override {
+int UDPConnection::connect() {
     // Connect socket to address
-    if (::connect(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0) {
+    if (::connect(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0) {
       throw std::runtime_error("Error getting address");
       return false;
     }
 
     return true;
+}
+
+bool UDPConnection::send(const std::string &message) {
+  ssize_t sent_bytes = ::send(m_socket, message.c_str(), message.size(), 0);
+  if (sent_bytes == ERROR) {
+    std::cerr << "Error sending data: " << strerror(errno) << std::endl;
+    return false;
+  } else if (static_cast<size_t>(sent_bytes) != message.size()) {
+    std::cerr << "Incomplete data sent" << std::endl;
+    return false;
   }
 
-  bool send(const std::string &message) override {
-    ssize_t sent_bytes = ::send(m_socket, message.c_str(), message.size(), 0);
-    if (sent_bytes == ERROR) {
-      std::cerr << "Error sending data: " << strerror(errno) << std::endl;
-      return false;
-    } else if (static_cast<size_t>(sent_bytes) != message.size()) {
-      std::cerr << "Incomplete data sent" << std::endl;
-      return false;
-    }
+  return true;
+}
 
-    return true;
-  }
-
-  std::string receive() override {
+std::string UDPConnection::receive() {
     char recv_message[MESSAGE_SIZE];
     memset(recv_message, 0, MESSAGE_SIZE);
 
-    socklen_t addr_len = sizeof(addrinfo);
+    socklen_t addr_len = sizeof(m_addrinfo);
 
     int bytes_received = ::recv(m_socket, recv_message, MESSAGE_SIZE, 0);
 
@@ -202,19 +158,15 @@ class UDPConnection : public IConnection {
     }
 
     return recv_message;
-  }
+}
 
-  bool changeOptions() override {
+bool UDPConnection::changeOptions() {
     // Implementación del método changeOptions
     return true;
-  }
+}
 
- private:
-  struct addrinfo *addrinfo;
-  int m_socket;
-};
 
-IConnection *createConnection(const std::string &address,
+std::unique_ptr<IConnection> createConnection(const std::string &address,
                               const std::string &port, bool isBlocking,
                               int protocolMacro) {
   Protocol protocol;
@@ -233,16 +185,16 @@ IConnection *createConnection(const std::string &address,
 
   switch (protocol) {
     case Protocol::TCPv4:
-      return new TCPv4Connection(address, port, isBlocking);
+      return std::make_unique<TCPv4Connection>(address, port, isBlocking);
       break;
     case Protocol::TCPv6:
-      return new TCPv6Connection(address, port, isBlocking);
+      return std::make_unique<TCPv6Connection>(address, port, isBlocking);
       break;
     case Protocol::UDPv4:
-      return new UDPConnection(address, port, isBlocking);
+      return std::make_unique<UDPConnection>(address, port, isBlocking);
       break;
     case Protocol::UDPv6:
-      return new UDPConnection(address, port, isBlocking);
+      return std::make_unique<UDPConnection>(address, port, isBlocking);
       break;
     default:
       throw std::invalid_argument("Unsupported protocol");
