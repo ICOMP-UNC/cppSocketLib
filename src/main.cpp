@@ -207,10 +207,16 @@ int main() {
   std::shared_ptr<IConnection> con2 = std::make_shared<UDPConnection>("::1", "7658", true);
   std::shared_ptr<IConnection> con3 = std::make_shared<UDPConnection>("127.0.0.2", "7672", true);
   std::shared_ptr<IConnection> con4 = std::make_shared<UDPConnection>("127.0.0.2", "7672", true);
+
   std::jthread thread1([&con1]() {
-    con1->bind();
-    std::string message = con1->receive();
-    std::cout << "Received message: " << message << std::endl;
+    try {
+      con1->bind();
+      std::string message = con1->receive();
+      std::cout << "Received message: " << message << std::endl;
+    } catch (const excepti&) {
+
+    }
+
     // Process the received message from con1
   });
 
