@@ -1,6 +1,5 @@
 # Request the minimum version of CMake, in case of lower version throws an error.
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
-cmake_policy(SET CMP0148 NEW)
 # Define your project and specify the use of C++.
 project(
   "FirstProjectInCMake"
