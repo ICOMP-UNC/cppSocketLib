@@ -20,7 +20,6 @@
 #define TCP 1              // Macro for TCP
 #define UDP 2              // Macro for UDP
 #define ERROR -1           // Macro for error
-#define MESSAGE_SIZE 1024  // Buffer size for messages
 
 /**
  * @brief Enumeration representing different network protocols.
@@ -96,11 +95,10 @@ class IConnection {
   int getSocket();
 
  protected:
-  std::string address_; /**< IP address of the connection. */
-  std::string m_port_;  /**< Port number of the connection. */
-  bool isBlocking_; /**< Flag to set the connection as blocking or non-blocking.
-                     */
-  int socket_fd_;   /**< File descriptor of the socket. */
+  std::string address_;     /**< IP address of the connection. */
+  std::string m_port_;      /**< Port number of the connection. */
+  bool isBlocking_;         /**< Flag to set the connection as blocking or non-blocking.*/
+  int socket_fd_;           /**< File descriptor of the socket. */
 };
 
 /**

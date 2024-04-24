@@ -99,8 +99,7 @@ UDPConnection::UDPConnection(const std::string &address, const std::string &port
                       m_addrinfo->ai_protocol);
     
     if (m_socket < 0) {
-      std::cerr << "Error creating socket" << std::endl;
-      exit(1);
+      throw std::runtime_error("Error creating socket");
     }
     if (!isBlocking) {
       int flags = fcntl(m_socket, F_GETFL, 0);
@@ -145,12 +144,14 @@ bool UDPConnection::send(const std::string &message) {
 }
 
 std::string UDPConnection::receive() {
-    char recv_message[MESSAGE_SIZE];
-    memset(recv_message, 0, MESSAGE_SIZE);
+    //char recv_message[MESSAGE_SIZE];
+    //memset(recv_message, 0, MESSAGE_SIZE);
 
+    string recv_message;
     socklen_t addr_len = sizeof(m_addrinfo);
 
-    int bytes_received = ::recv(m_socket, recv_message, MESSAGE_SIZE, 0);
+    //int bytes_received = ::recv(m_socket, recv_message, MESSAGE_SIZE, 0);
+    int bytes_received = ::recv(m_socket, recv_message, recv_message.size(), 0);
 
     if (bytes_received < 0) {
       std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
