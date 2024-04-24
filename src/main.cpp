@@ -235,12 +235,16 @@ IConnection *createConnection(const std::string &address,
   switch (protocol) {
     case Protocol::TCPv4:
       return new TCPv4Connection(address, port, isBlocking);
+      break;
     case Protocol::TCPv6:
       return new TCPv6Connection(address, port, isBlocking);
+      break;
     case Protocol::UDPv4:
       return new UDPConnection(address, port, isBlocking);
+      break;
     case Protocol::UDPv6:
       return new UDPConnection(address, port, isBlocking);
+      break;
     default:
       throw std::invalid_argument("Unsupported protocol");
   }
