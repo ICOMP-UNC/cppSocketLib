@@ -257,6 +257,23 @@ bool TCPv6Connection::send(const std::string& message)
     return true;
 }
 
+std::string TCPv6Connection::receiveFrom(int socket)
+{
+    char buffer[MESSAGE_SIZE] = "";
+
+    int n = ::recv(socket, buffer, sizeof(buffer) - 1, 0);
+    if (n < 0)
+    {
+        throw std::runtime_error("Error: failed to receive message");
+    }
+    else if (n == 0)
+    {
+        throw std::runtime_error("Connection closed by peer");
+    }
+
+    return std::string(buffer, n);
+}
+
 std::string TCPv6Connection::receive()
 {
     char buffer[MESSAGE_SIZE] = "";
@@ -399,7 +416,24 @@ int main()
 {
     TCPv4Connection server = TCPv4Connection("127.0.0.1", "8080", false);
     TCPv4Connection client = TCPv4Connection("127.0.0.1", "8080", false);
+/*
+    TCPv6Connection con1 = TCPv6Connection("::1", "7658", true);
+    TCPv6Connection con2 = TCPv6Connection("::1", "7658", true);
 
+    std::thread thread1([&con1]() {      
+        con1.bind();                    // bind and listen here
+        int cli_fd = con1.connect(); // accept here
+        std::string message = con1.receiveFrom(cli_fd);
+        std::cout << "Received message: " << message << std::endl;
+    });
+
+    std::thread thread2([&con2]() {
+        con2.connect();
+        con2.send("Hola mundo! IPv6");
+    });
+    thread1.join();
+    thread2.join();
+*/
     int chd = fork();
     if (chd == 0)
     {
