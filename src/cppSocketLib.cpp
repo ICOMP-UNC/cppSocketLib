@@ -160,7 +160,7 @@ int UDPConnection::connect()
     // Connect socket to address
     if (::connect(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
     {
-        throw std::runtime_error("Error getting address");
+        throw std::runtime_error("Error in conection");
     }
 
     return true;

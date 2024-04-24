@@ -22,7 +22,7 @@ TEST(UDPConnectionTestIPv4, CreateFailure) {
 
 TEST(UDPConnectionTestIPv6, BindSuccess) {
 
-    std::shared_ptr<IConnection> con = createConnection(":::1", "65536", false, UDP);
+    std::shared_ptr<IConnection> con = createConnection("::1", "65536", false, UDP);
     EXPECT_TRUE(con->bind());
 }
 
@@ -37,6 +37,11 @@ TEST(UDPConnectionTestIPv6, CreateFailure) {
         EXPECT_THROW(throw std::runtime_error("Error getting address"), std::runtime_error);
     }
     
+}
+
+TEST(UDPConnectionTestIPv4, UnsupportedProtocolMacro){
+    EXPECT_THROW(createConnection("127.0.0.1", "8080", true, 10), std::invalid_argument);
+
 }
 
 
