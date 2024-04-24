@@ -20,6 +20,26 @@ TEST(UDPConnectionTestIPv4, CreateFailure) {
     
 }
 
+TEST(UDPConnectionTestIPv6, BindSuccess) {
+
+    std::shared_ptr<IConnection> con = createConnection(":::1", "65536", false, UDP);
+    EXPECT_TRUE(con->bind());
+}
+
+TEST(UDPConnectionTestIPv6, CreateFailure) {
+
+    try
+    {
+        std::shared_ptr<IConnection> con1 = createConnection(":::1", "65536", false, UDP);
+    }
+    catch(const std::exception& e)
+    {
+        EXPECT_THROW(throw std::runtime_error("Error getting address"), std::runtime_error);
+    }
+    
+}
+
+
 TEST(UDPConnectionTestIPv4, ConnectSuccess) {
     
 }
