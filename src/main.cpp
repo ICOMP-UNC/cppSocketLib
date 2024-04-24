@@ -1,12 +1,10 @@
-#include "libraryCpp.hpp"
+#include "cppSocketLib.hpp"
 
 IConnection::IConnection(const std::string &address, const std::string &port,
                          bool isBlocking)
     : address_(address), m_port_(port), isBlocking_(isBlocking) {}
 
 IConnection::~IConnection() {}
-
-int IConnection::getSocket() { return socket_fd_; }
 
 TCPv4Connection::TCPv4Connection(const std::string &address,
                                  const std::string &port, bool isBlocking)
@@ -23,6 +21,7 @@ int TCPv4Connection::connect() {
   // Implementación del método connect
   return 0;
 }
+int TCPv4Connection::getSocket() { return 0; }
 
 bool TCPv4Connection::send(const std::string &message) {
   // Implementación del método send
@@ -50,6 +49,8 @@ bool TCPv6Connection::bind() {
   return true;
 }
 
+int TCPv6Connection::getSocket() { return 0; }
+
 int TCPv6Connection::connect() {
   // Implementación del método connect
   return 0;
@@ -71,13 +72,12 @@ bool TCPv6Connection::changeOptions() {
 }
 
 UDPConnection::UDPConnection(const std::string &address,
-                             const std::string &port, bool isBlocking)
+                             const std::string &port, bool isBlocking, bool IPv6)
     : IConnection(address, port, isBlocking) {
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
 
-  bool isIPv6 = address.find(':') != std::string::npos;
-  if (isIPv6) {
+  if (IPv6) {
     hints.ai_family = AF_INET6;
   } else {
     hints.ai_family = AF_INET;
@@ -89,15 +89,15 @@ UDPConnection::UDPConnection(const std::string &address,
     hints.ai_flags = AI_PASSIVE;
   }
 
-  addrinfo *raw_addrinfo =
+  addrinfo *rawAddrinfo =
       nullptr;  // Raw pointer to store the result of getaddrinfo
-  int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &raw_addrinfo);
+  int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &rawAddrinfo);
   if (res != 0) {
     std::cerr << "Error getting address" << std::endl;
     exit(1);
   }
   m_addrinfo = std::unique_ptr<addrinfo>(
-      raw_addrinfo);  // Wrap raw pointer in the smart pointer
+      rawAddrinfo);  // Wrap raw pointer in the smart pointer
 
   m_socket = socket(m_addrinfo->ai_family, m_addrinfo->ai_socktype,
                     m_addrinfo->ai_protocol);
@@ -113,6 +113,8 @@ UDPConnection::UDPConnection(const std::string &address,
 
 UDPConnection::~UDPConnection() {}
 
+int UDPConnection::getSocket() { return m_socket; }
+
 bool UDPConnection::bind() {
   // Bind socket to address
   if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0) {
@@ -127,40 +129,35 @@ int UDPConnection::connect() {
   // Connect socket to address
   if (::connect(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0) {
     throw std::runtime_error("Error getting address");
-    return false;
   }
 
   return true;
 }
 
 bool UDPConnection::send(const std::string &message) {
-  ssize_t sent_bytes = ::send(m_socket, message.c_str(), message.size(), 0);
-  if (sent_bytes == ERROR) {
-    std::cerr << "Error sending data: " << strerror(errno) << std::endl;
+  ssize_t sentBytes = ::send(m_socket, message.c_str(), message.size(), 0);
+  if (sentBytes == ERROR) {
+    std::cout << "Error sending data: " << strerror(errno) << std::endl;
     return false;
-  } else if (static_cast<size_t>(sent_bytes) != message.size()) {
-    std::cerr << "Incomplete data sent" << std::endl;
+  } else if (static_cast<size_t>(sentBytes) != message.size()) {
+    std::cout << "Incomplete data sent" << std::endl;
     return false;
   }
-
   return true;
 }
 
 std::string UDPConnection::receive() {
-  std::vector<char> recv_message(MESSAGE_LENGTH, 0);
-  socklen_t addr_len = sizeof(m_addrinfo);
+  std::vector<char> recvMessage(MESSAGE_LENGTH, 0);
 
-  // int bytes_received = ::recv(m_socket, recv_message, MESSAGE_SIZE, 0);
-  int bytes_received =
-      ::recv(m_socket, recv_message.data(), recv_message.size(), 0);
+  int bytesReceived =
+      ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
 
-  if (bytes_received < 0) {
+  if (bytesReceived < 0) {
     std::cerr << "Error receiving data: " << strerror(errno) << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  return std::string(recv_message.begin(),
-                     recv_message.begin() + bytes_received);
+  return std::string(recvMessage.begin(), recvMessage.begin() + bytesReceived);
 }
 
 bool UDPConnection::changeOptions() {
@@ -194,73 +191,86 @@ std::unique_ptr<IConnection> createConnection(const std::string &address,
       return std::make_unique<TCPv6Connection>(address, port, isBlocking);
       break;
     case Protocol::UDPv4:
-      return std::make_unique<UDPConnection>(address, port, isBlocking);
+      return std::make_unique<UDPConnection>(address, port, isBlocking, false);
       break;
     case Protocol::UDPv6:
-      return std::make_unique<UDPConnection>(address, port, isBlocking);
+      return std::make_unique<UDPConnection>(address, port, isBlocking, true);
       break;
     default:
       throw std::invalid_argument("Unsupported protocol");
   }
 }
 
+class ThreadManager {
+ public:
+  ThreadManager(std::jthread thread1, std::jthread thread2,
+                std::jthread thread3, std::jthread thread4)
+      : thread1_(std::move(thread1)),
+        thread2_(std::move(thread2)),
+        thread3_(std::move(thread3)),
+        thread4_(std::move(thread4)) {}
+
+  ~ThreadManager() {
+    thread3_.join();
+    thread4_.join();
+    thread1_.join();
+    thread2_.join();
+  }
+
+ private:
+  std::jthread thread1_;
+  std::jthread thread2_;
+  std::jthread thread3_;
+  std::jthread thread4_;
+};
+
 int main() {
   std::shared_ptr<IConnection> con1 =
-      std::make_shared<UDPConnection>("::1", "7658", true);
+      createConnection("::1", "7658", true, UDP);
   std::shared_ptr<IConnection> con2 =
-      std::make_shared<UDPConnection>("::1", "7658", true);
+      createConnection("::1", "7658", true, UDP);
   std::shared_ptr<IConnection> con3 =
-      std::make_shared<UDPConnection>("127.0.0.2", "7672", true);
+      createConnection("127.0.0.2", "7672", true, UDP);
   std::shared_ptr<IConnection> con4 =
-      std::make_shared<UDPConnection>("127.0.0.2", "7672", true);
+      createConnection("127.0.0.2", "7672", true, UDP);
 
-  std::jthread thread1([&con1]() {
-    try {
-      con1->bind();
-      std::string message = con1->receive();
-      std::cout << "Received message: " << message << std::endl;
-    } catch (const std::exception &e) {
-      std::cerr << e.what() << std::endl;
-    }
-
-    // Process the received message from con1
-  });
-
-  std::jthread thread2([&con2]() {
-    try {
-      con2->connect();
-      con2->send("Hola mundo! IPv6");
-    } catch (const std::exception &e) {
-      std::cerr << e.what() << std::endl;
-    }
-  });
-
-  std::jthread thread4([&con4]() {
-    try {
-      con4->connect();
-      con4->send("Hola mundo! IPv4");
-      // Process the received message from con2
-    } catch (const std::exception &e) {
-      std::cerr << e.what() << std::endl;
-    }
-  });
-
-  std::jthread thread3([&con3]() {
-    try {
-      con3->bind();
-      std::string message = con3->receive();
-      std::cout << "Received message: " << message << std::endl;
-      // Process the received message from con1
-    } catch (const std::exception &e) {
-      std::cerr << e.what() << std::endl;
-    }
-  });
-
-  // Wait for the threads to finish
-  thread3.join();
-  thread4.join();
-  thread1.join();
-  thread2.join();
+  ThreadManager threads(
+      std::jthread([&con1]() {
+        try {
+          con1->bind();
+          std::string message = con1->receive();
+          std::cout << "Received message: " << message << std::endl;
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+        }
+      }),
+      std::jthread([&con2]() {
+        try {
+          con2->connect();
+          con2->send("Hola mundo! IPv6");
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+        }
+      }),
+      std::jthread([&con4]() {
+        try {
+          con4->connect();
+          con4->send("Hola mundo! IPv4");
+          // Process the received message from con2
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+        }
+      }),
+      std::jthread([&con3]() {
+        try {
+          con3->bind();
+          std::string message = con3->receive();
+          std::cout << "Received message: " << message << std::endl;
+          // Process the received message from con1
+        } catch (const std::exception &e) {
+          std::cerr << e.what() << std::endl;
+        }
+      }));
 
   return 0;
 }

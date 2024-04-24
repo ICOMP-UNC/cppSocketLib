@@ -1,5 +1,5 @@
 // connection.hpp - Header file for connection.cpp
-#ifndef CONNECTION_H
+#ifndef _CPP_SOCKET_LIB_HPP
 #define CONNECTION_H
 
 #include <arpa/inet.h>
@@ -8,7 +8,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -17,12 +16,11 @@
 #include <thread>
 #include <vector>
 
-#include "libraryCpp.hpp"
-
 #define TCP 1                 // Macro for TCP
 #define UDP 2                 // Macro for UDP
 #define ERROR -1              // Macro for error
 #define MESSAGE_LENGTH 10000  // Macro for message length
+
 /**
  * @brief Enumeration representing different network protocols.
  */
@@ -94,14 +92,13 @@ class IConnection {
    *
    * @return int File descriptor of the socket.
    */
-  int getSocket();
+  virtual int getSocket() = 0;
 
  protected:
   std::string address_; /**< IP address of the connection. */
   std::string m_port_;  /**< Port number of the connection. */
   bool isBlocking_;     /**< Flag to set the connection as blocking or
                            non-blocking.*/
-  int socket_fd_;       /**< File descriptor of the socket. */
 };
 
 /**
@@ -154,6 +151,13 @@ class TCPv4Connection : public IConnection {
    * @return true if the options are successfully changed, false otherwise.
    */
   bool changeOptions() override;
+
+  /**
+   * @brief Get the socket file descriptor.
+   *
+   * @return int File descriptor of the socket.
+   */
+  int getSocket() override;
 };
 
 /**
@@ -206,6 +210,13 @@ class TCPv6Connection : public IConnection {
    * @return true if the options are successfully changed, false otherwise.
    */
   bool changeOptions() override;
+
+  /**
+   * @brief Get the socket file descriptor.
+   *
+   * @return int File descriptor of the socket.
+   */
+  int getSocket() override;
 };
 
 /**
@@ -226,7 +237,7 @@ class UDPConnection : public IConnection {
    * @param isBlocking Flag to set the connection as blocking or non-blocking.
    */
   UDPConnection(const std::string &address, const std::string &port,
-                bool isBlocking);
+                bool isBlocking, bool IPv6);
 
   /**
    * @brief Destroy the UDPConnection object.
@@ -270,6 +281,13 @@ class UDPConnection : public IConnection {
    * @return true if the options are successfully changed, false otherwise.
    */
   bool changeOptions() override;
+
+  /**
+   * @brief Get the socket file descriptor.
+   *
+   * @return int File descriptor of the socket.
+   */
+  int getSocket() override;
 
  private:
   std::unique_ptr<addrinfo> m_addrinfo;  // Smart pointer for addrinfo
