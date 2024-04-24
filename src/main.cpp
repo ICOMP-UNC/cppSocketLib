@@ -94,8 +94,8 @@ class IConnection
 class TCPv4Connection : public IConnection
 {
   private:
-    struct addrinfo* addrinfo = NULL;
-    bool binded = false;
+    struct addrinfo* addrinfo = NULL; // Pointer to address information
+    bool binded = false; // Flag indicating if the socket is bound
 
   public:
     /**
@@ -108,18 +108,20 @@ class TCPv4Connection : public IConnection
     TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
         : IConnection(address, port, isBlocking)
     {
+        // Set up address hints for IPv4 TCP
         struct addrinfo hints;
         hints.ai_flags = 0;
-        hints.ai_family = AF_INET;
-        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_family = AF_INET; // IPv4
+        hints.ai_socktype = SOCK_STREAM; // TCP
         hints.ai_protocol = IPPROTO_TCP;
 
         if (address.empty())
         {
-            // for listening connections
+            // For listening connections, set AI_PASSIVE flag
             hints.ai_flags = AI_PASSIVE; // ANY_ADDRESS
         }
 
+        // Get address information based on hints
         int res = getaddrinfo(address.c_str(), port.c_str(), &hints, &addrinfo);
 
         if (res != 0)
@@ -127,6 +129,7 @@ class TCPv4Connection : public IConnection
             throw std::runtime_error(gai_strerror(res));
         }
 
+        // Create a socket using obtained address information        
         m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
 
         if (m_socket < 0)
@@ -137,19 +140,21 @@ class TCPv4Connection : public IConnection
 
     ~TCPv4Connection()
     {
+        // Close socket and free address information
         close(m_socket);
         freeaddrinfo(addrinfo);
     }
 
     bool bind() override
     {
+        // Bind the socket to the address information
         if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
         {
             throw std::runtime_error("Error: cannot bind socket");
             return false;
         }
 
-        int res = ::listen(m_socket, TCP_BACKLOG); // Escuchar conexiones entrantes
+        int res = ::listen(m_socket, TCP_BACKLOG); // Listen for incoming connections
         if (res < 0)
         {
             throw std::runtime_error("Error: cannot listen on socket");
@@ -166,7 +171,7 @@ class TCPv4Connection : public IConnection
         if (binded)
         {
             // for server accept new connection
-            int client_fd = ::accept(m_socket, NULL, NULL); // Aceptar una conexión entrante
+            int client_fd = ::accept(m_socket, NULL, NULL); // Accept incoming connection
             if (client_fd < 0)
             {
                 throw std::runtime_error("Error: cannot accept connection");
