@@ -69,5 +69,9 @@ endif()
 add_executable(tests ${TESTS_FILES}) # Include TESTS_FILES variable
 target_link_libraries(tests gtest gtest_main) # Link with Google Test
 
+
+include(GoogleTest)
+gtest_discover_tests(tests)
+
 # Add test
 add_test(NAME test_${PROJECT_NAME} COMMAND tests) # Use the target name 'tests' for the command
