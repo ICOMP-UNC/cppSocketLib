@@ -244,31 +244,30 @@ IConnection *createConnection(const std::string &address,
 }
 
 int main() {
-  IConnection *con1 = createConnection("::1", "7658", true, UDP);
-  IConnection *con2 = createConnection("::1", "7658", true, UDP);
-  IConnection *con3 = createConnection("127.0.0.2", "7672", true, UDP);
-  IConnection *con4 = createConnection("127.0.0.2", "7672", true, UDP);
-
-  std::jthread thread1([&]() {
+  std::shared_ptr<IConnection> con1 = std::make_shared<UDPConnection>("::1", "7658", true);
+  std::shared_ptr<IConnection> con2 = std::make_shared<UDPConnection>("::1", "7658", true);
+  std::shared_ptr<IConnection> con3 = std::make_shared<UDPConnection>("127.0.0.2", "7672", true);
+  std::shared_ptr<IConnection> con4 = std::make_shared<UDPConnection>("127.0.0.2", "7672", true);
+  std::jthread thread1([&con1]() {
     con1->bind();
     std::string message = con1->receive();
     std::cout << "Received message: " << message << std::endl;
     // Process the received message from con1
   });
 
-  std::jthread thread2([&]() {
+  std::jthread thread2([&con2]() {
     con2->connect();
     con2->send("Hola mundo! IPv6");
     // Process the received message from con2
   });
 
-  std::jthread thread4([&]() {
+  std::jthread thread4([&con4]() {
     con4->connect();
     con4->send("Hola mundo! IPv4");
     // Process the received message from con2
   });
 
-  std::jthread thread3([&]() {
+  std::jthread thread3([&con3]() {
     con3->bind();
     std::string message = con3->receive();
     std::cout << "Received message: " << message << std::endl;
@@ -280,10 +279,8 @@ int main() {
   thread4.join();
   thread1.join();
   thread2.join();
-  delete con1;
-  delete con2;
-  delete con3;
-  delete con4;
+ 
 
   return 0;
 }
+
