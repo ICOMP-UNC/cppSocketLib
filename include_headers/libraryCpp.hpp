@@ -207,27 +207,6 @@ class TCPv6Connection : public IConnection {
   bool changeOptions() override;
 };
 
-
-/**
- * 
- * CREO QUE NO SE USA. NO LA DOCUMENTO. soy flor:)
- * 
- * @brief Class representing a UDP IPv4 connection.
- */
-class UDPv4Connection : public IConnection {
- public:
-
-    
-
-  UDPv4Connection(const std::string &address, const std::string &port,
-                  bool isBlocking);
-  bool bind() override;
-  int connect() override;
-  bool send(const std::string &message) override;
-  std::string receive() override;
-  bool changeOptions() override;
-};
-
 /**
  * @brief Class representing a UDP IPv6 and IPv4 connections.
  */
