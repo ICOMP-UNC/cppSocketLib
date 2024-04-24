@@ -109,39 +109,6 @@ class TCPv6Connection : public IConnection {
   // Implement the virtual methods here
 };
 
-class UDPv4Connection : public IConnection {
- public:
-  UDPv4Connection(const std::string &address, const std::string &port,
-                  bool isBlocking)
-      : IConnection(address, port, isBlocking) {}
-  bool bind() override {
-    // Implementación del método bind
-    return true;
-  }
-
-  int connect() override {
-    // Implementación del método connect
-    return true;
-  }
-
-  bool send(const std::string &message) override {
-    std::cout << "UDPv4 " << message << std::endl;
-    return true;
-  }
-
-  std::string receive() override {
-    // Implementación del método receive
-    static std::string message = "message";
-    return message;
-  }
-
-  bool changeOptions() override {
-    // Implementación del método changeOptions
-    return true;
-  }
-  // Implement the virtual methods here
-};
-
 class UDPConnection : public IConnection {
  public:
   UDPConnection(const std::string &address, const std::string &port,
