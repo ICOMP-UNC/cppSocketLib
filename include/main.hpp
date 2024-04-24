@@ -29,6 +29,7 @@
 #include <thread>
 #include <unistd.h>
 #include <wait.h>
+#include <thread>
 
 #define TCP 1             /**< use TCP protocol flag. */
 #define UDP 2             /**< use UDP protocol flag. */
@@ -236,6 +237,13 @@ class TCPv6Connection : public IConnection
      * @return std::string Received message.
      */
     std::string receive() override;
+
+    /**
+     * @brief Receive a message through a specific socket
+     *
+     * @return std::string Received message.
+     */
+    std::string receiveFrom(int socket);
 
     /**
      * @brief Change the options of the connection.
