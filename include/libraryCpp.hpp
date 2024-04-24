@@ -12,15 +12,17 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <thread>
-#include <stdexcept>
+#include <vector>
 
+#include "libraryCpp.hpp"
 
-#define TCP 1              // Macro for TCP
-#define UDP 2              // Macro for UDP
-#define ERROR -1           // Macro for error
-
+#define TCP 1                 // Macro for TCP
+#define UDP 2                 // Macro for UDP
+#define ERROR -1              // Macro for error
+#define MESSAGE_LENGTH 10000  // Macro for message length
 /**
  * @brief Enumeration representing different network protocols.
  */
@@ -95,10 +97,11 @@ class IConnection {
   int getSocket();
 
  protected:
-  std::string address_;     /**< IP address of the connection. */
-  std::string m_port_;      /**< Port number of the connection. */
-  bool isBlocking_;         /**< Flag to set the connection as blocking or non-blocking.*/
-  int socket_fd_;           /**< File descriptor of the socket. */
+  std::string address_; /**< IP address of the connection. */
+  std::string m_port_;  /**< Port number of the connection. */
+  bool isBlocking_;     /**< Flag to set the connection as blocking or
+                           non-blocking.*/
+  int socket_fd_;       /**< File descriptor of the socket. */
 };
 
 /**
@@ -269,7 +272,7 @@ class UDPConnection : public IConnection {
   bool changeOptions() override;
 
  private:
-  std::unique_ptr<addrinfo> m_addrinfo; // Smart pointer for addrinfo
+  std::unique_ptr<addrinfo> m_addrinfo;  // Smart pointer for addrinfo
   int m_socket;
 };
 
@@ -283,7 +286,8 @@ class UDPConnection : public IConnection {
  * @return IConnection* Pointer to the created connection.
  */
 std::unique_ptr<IConnection> createConnection(const std::string &address,
-                              const std::string &port, bool isBlocking,
-                              int protocolMacro);
+                                              const std::string &port,
+                                              bool isBlocking,
+                                              int protocolMacro);
 
 #endif  // CONNECTION_H
