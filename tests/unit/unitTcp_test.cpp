@@ -14,6 +14,10 @@
  * all copies or substantial portions of the Software.
  */
 
+#ifndef TCP_TEST_HPP
+#define TCP_TEST_HPP
+
+#include "gtest/gtest.h"
 #include "cppSocketLib.hpp"
 
 TEST(TCPConnectionTestIPv4, BindSuccess) {
@@ -49,3 +53,5 @@ TEST(TCPv6ConnectionTest, SendMessage) {
 
     EXPECT_NO_THROW(client.send("Hello, world!"));
 }
+
+#endif // TCP_TEST_HPP
