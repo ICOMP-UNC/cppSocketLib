@@ -2,10 +2,10 @@
 cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
 # Define your project and specify the use of C++.
 project(
-  "FirstProjectInCMake"
+  "SocketWrapper"
   VERSION 1.0.0
-  DESCRIPTION "CMake C++ Project Template for Operating Systems II"
-  LANGUAGES CXX  # Change from C to C++
+  DESCRIPTION "Socket Wrapper for c++"
+  LANGUAGES CXX
 )
 
 # Enable testing with CTest which is integrated with GTest
@@ -32,7 +32,7 @@ set(FETCHCONTENT_QUIET OFF)
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY ${GTEST_GIT_URL}
-  GIT_TAG release-1.10.0  # Optionally pin to a stable release
+  GIT_TAG v1.13.0  # Optionally pin to a stable release
 )
 
 FetchContent_MakeAvailable(googletest)
@@ -45,19 +45,6 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")  # Change from *.c to *.cpp
 add_library(${PROJECT_NAME} ${SOURCES})
 
 # Setup Google Test
-
-if((RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1) AND BUILD_TESTING)  # This is set by enable_testing()
+if(RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1)  # This is set by enable_testing()
   add_subdirectory(tests)
-
-  # Collect test source files
-  file(GLOB_RECURSE TEST_SOURCES "tests/unit/*.cpp" "src/cppSocketLib.cpp")
-
-  # Link Google Test to the test executable
-  add_executable(unit_tests ${TEST_SOURCES})
-  target_link_libraries(unit_tests gtest_main gmock_main)
-  target_include_directories(unit_tests PUBLIC ${gtest_SOURCE_DIR}/include ${gmock_SOURCE_DIR}/include)
-
-  # Add the tests to be run by CTest
-  include(GoogleTest)
-  gtest_discover_tests(unit_tests)
 endif()

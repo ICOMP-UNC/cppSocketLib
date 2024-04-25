@@ -14,8 +14,11 @@
  * all copies or substantial portions of the Software.
  */
 
+#ifndef UDP_TEST_HPP
+#define UDP_TEST_HPP
+
+#include "gtest/gtest.h"
 #include "cppSocketLib.hpp"
-#include <gtest/gtest.h>
 
 TEST(UDPConnectionTestIPv4, BindSuccess)
 {
@@ -56,8 +59,4 @@ TEST(UDPConnectionTestIPv4, ConnectFailure)
     EXPECT_EQ(0, 0);
 }
 
-int main(int argc, char** argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+#endif // UDP_TEST_HPP
