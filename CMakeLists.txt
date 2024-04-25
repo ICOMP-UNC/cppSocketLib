@@ -47,16 +47,4 @@ add_library(${PROJECT_NAME} ${SOURCES})
 # Setup Google Test
 if(RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1)  # This is set by enable_testing()
   add_subdirectory(tests)
-
-  # Collect test source files
-  file(GLOB_RECURSE TEST_SOURCES "tests/unit/*.cpp" "src/cppSocketLib.cpp")
-
-  # Link Google Test to the test executable
-  add_executable(unit_tests ${TEST_SOURCES})
-  target_link_libraries(unit_tests gtest_main gmock_main)
-  target_include_directories(unit_tests PUBLIC ${gtest_SOURCE_DIR}/include ${gmock_SOURCE_DIR}/include)
-
-  # Add the tests to be run by CTest
-  include(GoogleTest)
-  gtest_discover_tests(unit_tests)
 endif()
