@@ -1,6 +1,21 @@
-// connection.hpp - Header file for connection.cpp
+/*
+ * Socket Library - cppSocketWrapper
+ * Copyright (C) 2024, Operating Systems II.
+ * Apr 23, 2024.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
 #ifndef _CPP_SOCKET_LIB_HPP
-#define CONNECTION_H
+#define _CPP_SOCKET_LIB_HPP
 
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -95,9 +110,9 @@ class IConnection {
   virtual int getSocket() = 0;
 
  protected:
-  std::string address_; /**< IP address of the connection. */
-  std::string m_port_;  /**< Port number of the connection. */
-  bool isBlocking_;     /**< Flag to set the connection as blocking or
+  std::string m_address; /**< IP address of the connection. */
+  std::string m_port;  /**< Port number of the connection. */
+  bool m_isBlocking;     /**< Flag to set the connection as blocking or
                            non-blocking.*/
 };
 
@@ -308,4 +323,4 @@ std::unique_ptr<IConnection> createConnection(const std::string &address,
                                               bool isBlocking,
                                               int protocolMacro);
 
-#endif  // CONNECTION_H
+#endif  // _CPP_SOCKET_LIB_HPP

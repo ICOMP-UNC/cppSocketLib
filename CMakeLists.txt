@@ -42,7 +42,7 @@ FetchContent_MakeAvailable(googletest)
 file(GLOB_RECURSE SOURCES "src/*.cpp")  # Change from *.c to *.cpp
 
 # Create the executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_library(${PROJECT_NAME} ${SOURCES})
 
 # Setup Google Test
 
