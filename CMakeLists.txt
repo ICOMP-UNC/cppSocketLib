@@ -15,11 +15,7 @@ enable_testing()
 # Define the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-<<<<<<< HEAD
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=maybe-uninitialized")
-=======
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd lsp
->>>>>>> e1ed765 (created main.hpp - created minimal main functionality for TCPv4)
 
 # Include the `include` directory, where the headers are located
 include_directories(include)
@@ -31,16 +27,12 @@ include(FetchContent)
 set(GTEST_GIT_URL "https://github.com/google/googletest.git")
 
 # Enable debug
-<<<<<<< HEAD
 set(FETCHCONTENT_QUIET OFF)
-=======
-set(FETCHCONTENT_QUIET ON)
->>>>>>> 40c66ae (smart pointer - test example)
 
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY ${GTEST_GIT_URL}
-  GIT_TAG release-1.10.0  # Optionally pin to a stable release
+  GIT_TAG v1.13.0  # Optionally pin to a stable release
 )
 
 FetchContent_MakeAvailable(googletest)
@@ -53,18 +45,18 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")  # Change from *.c to *.cpp
 add_library(${PROJECT_NAME} ${SOURCES})
 
 # Setup Google Test
-if((RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1) AND BUILD_TESTING)  # This is set by enable_testing()
+if(RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1)  # This is set by enable_testing()
   add_subdirectory(tests)
 
   # Collect test source files
   file(GLOB_RECURSE TEST_SOURCES "tests/unit/*.cpp" "src/cppSocketLib.cpp")
 
   # Link Google Test to the test executable
-  #[[add_executable(unit_tests ${TEST_SOURCES})
+  add_executable(unit_tests ${TEST_SOURCES})
   target_link_libraries(unit_tests gtest_main gmock_main)
   target_include_directories(unit_tests PUBLIC ${gtest_SOURCE_DIR}/include ${gmock_SOURCE_DIR}/include)
 
   # Add the tests to be run by CTest
   include(GoogleTest)
-  gtest_discover_tests(unit_tests)]]
+  gtest_discover_tests(unit_tests)
 endif()
