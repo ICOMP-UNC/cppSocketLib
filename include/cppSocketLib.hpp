@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Socket Library - cppSocketWrapper
-=======
- * DatabaseManagment - cppSocketWrapper
->>>>>>> 4005dc7 (Added a main.cpp because cppSocketLib is a librery. undefined reference to destructor in test.)
  * Copyright (C) 2024, Operating Systems II.
  * Apr 23, 2024.
  *
@@ -58,7 +54,7 @@ enum class Protocol
  */
 class IConnection
 {
-  public:
+public:
     /**
      * @brief Construct a new IConnection object.
      *
@@ -116,7 +112,7 @@ class IConnection
      */
     virtual int getSocket() = 0;
 
-  protected:
+protected:
     std::string m_address; //< IP address of the connection. */
     std::string m_port;    //< Port number of the connection. */
     bool m_isBlocking;     //< Flag to set the connection as blocking or non-blocking.*/
@@ -128,7 +124,7 @@ class IConnection
  */
 class TCPv4Connection : public IConnection
 {
-  public:
+public:
     /**
      * @brief Constructor for TCPv4Connection class.
      *
@@ -199,7 +195,7 @@ class TCPv4Connection : public IConnection
      */
     int getSocket() override;
 
-  private:
+private:
     std::unique_ptr<addrinfo> m_addrinfo;
     bool binded = false;
 };
@@ -209,7 +205,7 @@ class TCPv4Connection : public IConnection
  */
 class TCPv6Connection : public IConnection
 {
-  public:
+public:
     /**
      * @brief Construct a new TCPv6Connection object.
      *
@@ -243,6 +239,8 @@ class TCPv6Connection : public IConnection
      */
     bool send(const std::string& message) override;
 
+    bool sendto(const std::string& message, int fdDestiny);
+
     /**
      * @brief Receive a message through the connection.
      *
@@ -271,7 +269,7 @@ class TCPv6Connection : public IConnection
      */
     int getSocket() override;
 
-  private:
+private:
     struct addrinfo* addrinfo = NULL;
     bool binded = false;
 };
@@ -281,7 +279,7 @@ class TCPv6Connection : public IConnection
  */
 class UDPConnection : public IConnection
 {
-  public:
+public:
     /**
      * @brief
      * - Construct a new UDPConnection object.
@@ -346,7 +344,7 @@ class UDPConnection : public IConnection
      */
     int getSocket() override;
 
-  private:
+private:
     std::unique_ptr<addrinfo> m_addrinfo; // Smart pointer for addrinfo
 };
 
@@ -359,7 +357,7 @@ class UDPConnection : public IConnection
  * @param protocolMacro Macro representing the network protocol.
  * @return IConnection* Pointer to the created connection.
  */
-std::unique_ptr<IConnection> createConnection(const std::string& address, const std::string& port, bool isBlocking,
-                                              int protocolMacro);
+std::unique_ptr<IConnection>
+createConnection(const std::string& address, const std::string& port, bool isBlocking, int protocolMacro);
 
 #endif // _CPP_SOCKET_LIB_HPP

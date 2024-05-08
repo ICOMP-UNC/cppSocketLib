@@ -17,13 +17,13 @@
 #include "cppSocketLib.hpp"
 
 IConnection::IConnection(const std::string& address, const std::string& port, bool isBlocking)
-    : m_address(address), m_port(port), m_isBlocking(isBlocking)
+    : m_address(address)
+    , m_port(port)
+    , m_isBlocking(isBlocking)
 {
 }
 
-IConnection::~IConnection()
-{
-}
+IConnection::~IConnection() {}
 
 TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
     : IConnection(address, port, isBlocking)
@@ -127,7 +127,7 @@ bool TCPv4Connection::sendto(const std::string& message, int fdDestiny)
 std::string TCPv4Connection::receiveFrom(int socket)
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
     int bytesReceived = ::recv(socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
@@ -136,7 +136,7 @@ std::string TCPv4Connection::receiveFrom(int socket)
     }
     else if (bytesReceived == 0)
     {
-        throw std::runtime_error("Connection closed by peer");
+        throw std::runtime_error("Connection closed by peer receiveFrom");
     }
 
     recvMessage.resize(bytesReceived);
@@ -146,7 +146,7 @@ std::string TCPv4Connection::receiveFrom(int socket)
 std::string TCPv4Connection::receive()
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
     int bytesReceived = ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
@@ -155,7 +155,7 @@ std::string TCPv4Connection::receive()
     }
     else if (bytesReceived == 0)
     {
-        throw std::runtime_error("Connection closed by peer");
+        throw std::runtime_error("Connection closed by peer receive");
     }
 
     recvMessage.resize(bytesReceived);
@@ -222,8 +222,9 @@ bool TCPv6Connection::bind()
     {
         throw std::runtime_error("Error: cannot listen on socket");
     }
+    binded = true;
 
-    return binded;
+    return true;
 }
 
 int TCPv6Connection::connect()
@@ -255,12 +256,22 @@ bool TCPv6Connection::send(const std::string& message)
     return true;
 }
 
+bool TCPv6Connection::sendto(const std::string& message, int fdDestiny)
+{
+    int numberBytes = ::send(fdDestiny, message.c_str(), message.size(), 0); // contesta al cliente mediante el mismo fd
+    if (numberBytes < 0)
+    {
+        throw std::runtime_error("Error: message sending failure");
+    }
+    return true;
+}
+
 std::string TCPv6Connection::receiveFrom(int socket)
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
-    int bytesReceived = ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
+    int bytesReceived = ::recv(socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
     {
         throw std::runtime_error("Error: failed to receive message");
@@ -277,7 +288,7 @@ std::string TCPv6Connection::receiveFrom(int socket)
 std::string TCPv6Connection::receive()
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
     int bytesReceived = ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
@@ -348,9 +359,7 @@ UDPConnection::UDPConnection(const std::string& address, const std::string& port
     }
 }
 
-UDPConnection::~UDPConnection()
-{
-}
+UDPConnection::~UDPConnection() {}
 
 int UDPConnection::getSocket()
 {
@@ -417,8 +426,8 @@ bool UDPConnection::changeOptions()
     throw std::runtime_error("Not implemented");
 }
 
-std::unique_ptr<IConnection> createConnection(const std::string& address, const std::string& port, bool isBlocking,
-                                              int protocolMacro)
+std::unique_ptr<IConnection>
+createConnection(const std::string& address, const std::string& port, bool isBlocking, int protocolMacro)
 {
     Protocol protocol;
 
@@ -441,19 +450,10 @@ std::unique_ptr<IConnection> createConnection(const std::string& address, const 
 
     switch (protocol)
     {
-    case Protocol::TCPv4:
-        return std::make_unique<TCPv4Connection>(address, port, isBlocking);
-        break;
-    case Protocol::TCPv6:
-        return std::make_unique<TCPv6Connection>(address, port, isBlocking);
-        break;
-    case Protocol::UDPv4:
-        return std::make_unique<UDPConnection>(address, port, isBlocking, false);
-        break;
-    case Protocol::UDPv6:
-        return std::make_unique<UDPConnection>(address, port, isBlocking, true);
-        break;
-    default:
-        throw std::invalid_argument("Unsupported protocol");
+        case Protocol::TCPv4: return std::make_unique<TCPv4Connection>(address, port, isBlocking); break;
+        case Protocol::TCPv6: return std::make_unique<TCPv6Connection>(address, port, isBlocking); break;
+        case Protocol::UDPv4: return std::make_unique<UDPConnection>(address, port, isBlocking, false); break;
+        case Protocol::UDPv6: return std::make_unique<UDPConnection>(address, port, isBlocking, true); break;
+        default: throw std::invalid_argument("Unsupported protocol");
     }
 }
