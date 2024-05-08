@@ -16,7 +16,7 @@
 
 #include "cppSocketLib.hpp"
 
-IConnection::IConnection(const std::string& address, const std::string& port, bool isBlocking)
+IConnection::IConnection(const std::string &address, const std::string &port, bool isBlocking)
     : m_address(address), m_port(port), m_isBlocking(isBlocking)
 {
 }
@@ -25,7 +25,7 @@ IConnection::~IConnection()
 {
 }
 
-TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
+TCPv4Connection::TCPv4Connection(const std::string &address, const std::string &port, bool isBlocking)
     : IConnection(address, port, isBlocking)
 {
     struct addrinfo hints;
@@ -40,7 +40,7 @@ TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& 
         hints.ai_flags = AI_PASSIVE; // ANY_ADDRESS
     }
 
-    addrinfo* raw_addrinfo = nullptr;
+    addrinfo *raw_addrinfo = nullptr;
     int resultAddrInfo = getaddrinfo(address.c_str(), port.c_str(), &hints, &raw_addrinfo);
 
     if (resultAddrInfo != 0)
@@ -104,7 +104,7 @@ int TCPv4Connection::connect()
     return true;
 }
 
-bool TCPv4Connection::send(const std::string& message)
+bool TCPv4Connection::send(const std::string &message)
 {
     int numberBytes = ::send(m_socket, message.c_str(), message.size(), 0); // contesta al cliente mediante el mismo fd
     if (numberBytes < 0)
@@ -114,7 +114,7 @@ bool TCPv4Connection::send(const std::string& message)
     return true;
 }
 
-bool TCPv4Connection::sendto(const std::string& message, int fdDestiny)
+bool TCPv4Connection::sendto(const std::string &message, int fdDestiny)
 {
     int numberBytes = ::send(fdDestiny, message.c_str(), message.size(), 0); // contesta al cliente mediante el mismo fd
     if (numberBytes < 0)
@@ -127,7 +127,7 @@ bool TCPv4Connection::sendto(const std::string& message, int fdDestiny)
 std::string TCPv4Connection::receiveFrom(int socket)
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
     int bytesReceived = ::recv(socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
@@ -136,7 +136,7 @@ std::string TCPv4Connection::receiveFrom(int socket)
     }
     else if (bytesReceived == 0)
     {
-        throw std::runtime_error("Connection closed by peer");
+        throw std::runtime_error("Connection closed by peer receiveFrom");
     }
 
     recvMessage.resize(bytesReceived);
@@ -146,7 +146,7 @@ std::string TCPv4Connection::receiveFrom(int socket)
 std::string TCPv4Connection::receive()
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
     int bytesReceived = ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
@@ -155,7 +155,7 @@ std::string TCPv4Connection::receive()
     }
     else if (bytesReceived == 0)
     {
-        throw std::runtime_error("Connection closed by peer");
+        throw std::runtime_error("Connection closed by peer receive");
     }
 
     recvMessage.resize(bytesReceived);
@@ -172,7 +172,7 @@ int TCPv4Connection::getSocket()
     return m_socket;
 }
 
-TCPv6Connection::TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking)
+TCPv6Connection::TCPv6Connection(const std::string &address, const std::string &port, bool isBlocking)
     : IConnection(address, port, isBlocking)
 {
     struct addrinfo hints;
@@ -222,6 +222,7 @@ bool TCPv6Connection::bind()
     {
         throw std::runtime_error("Error: cannot listen on socket");
     }
+    binded = true;
 
     return binded;
 }
@@ -242,10 +243,12 @@ int TCPv6Connection::connect()
     {
         throw std::runtime_error("Error: cannot connect");
     }
+    binded = true;
+
     return true;
 }
 
-bool TCPv6Connection::send(const std::string& message)
+bool TCPv6Connection::send(const std::string &message)
 {
     int numberBytes = ::send(m_socket, message.c_str(), message.size(), 0);
     if (numberBytes < 0)
@@ -303,7 +306,7 @@ int TCPv6Connection::getSocket()
     return m_socket;
 }
 
-UDPConnection::UDPConnection(const std::string& address, const std::string& port, bool isBlocking, bool IPv6)
+UDPConnection::UDPConnection(const std::string &address, const std::string &port, bool isBlocking, bool IPv6)
     : IConnection(address, port, isBlocking)
 {
     struct addrinfo hints;
@@ -325,7 +328,7 @@ UDPConnection::UDPConnection(const std::string& address, const std::string& port
         hints.ai_flags = AI_PASSIVE;
     }
 
-    addrinfo* rawAddrinfo = nullptr; // Raw pointer to store the result of getaddrinfo
+    addrinfo *rawAddrinfo = nullptr; // Raw pointer to store the result of getaddrinfo
 
     const auto resultAddrInfo = getaddrinfo(address.c_str(), port.c_str(), &hints, &rawAddrinfo);
     if (resultAddrInfo != 0)
@@ -379,7 +382,7 @@ int UDPConnection::connect()
     return true;
 }
 
-bool UDPConnection::send(const std::string& message)
+bool UDPConnection::send(const std::string &message)
 {
     ssize_t sentBytes = ::send(m_socket, message.c_str(), message.size(), 0);
     if (sentBytes == ERROR)
@@ -417,7 +420,7 @@ bool UDPConnection::changeOptions()
     throw std::runtime_error("Not implemented");
 }
 
-std::unique_ptr<IConnection> createConnection(const std::string& address, const std::string& port, bool isBlocking,
+std::unique_ptr<IConnection> createConnection(const std::string &address, const std::string &port, bool isBlocking,
                                               int protocolMacro)
 {
     Protocol protocol;
