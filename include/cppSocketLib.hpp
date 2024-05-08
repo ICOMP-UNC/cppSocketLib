@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Socket Library - cppSocketWrapper
-=======
- * DatabaseManagment - cppSocketWrapper
->>>>>>> 4005dc7 (Added a main.cpp because cppSocketLib is a librery. undefined reference to destructor in test.)
  * Copyright (C) 2024, Operating Systems II.
  * Apr 23, 2024.
  *
@@ -66,7 +62,7 @@ class IConnection
      * @param port Port number of the connection.
      * @param isBlocking Flag to set the connection as blocking or non-blocking.
      */
-    IConnection(const std::string& address, const std::string& port, bool isBlocking);
+    IConnection(const std::string &address, const std::string &port, bool isBlocking);
 
     /**
      * @brief Destroy the IConnection object.
@@ -93,7 +89,7 @@ class IConnection
      * @param message Message to be sent.
      * @return true if the message is successfully sent, false otherwise.
      */
-    virtual bool send(const std::string& message) = 0;
+    virtual bool send(const std::string &message) = 0;
 
     /**
      * @brief Receive a message through the connection.
@@ -136,7 +132,7 @@ class TCPv4Connection : public IConnection
      * @param port Port number for the connection.
      * @param isBlocking Flag indicating whether the connection is blocking.
      */
-    TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking);
+    TCPv4Connection(const std::string &address, const std::string &port, bool isBlocking);
 
     ~TCPv4Connection();
 
@@ -160,7 +156,7 @@ class TCPv4Connection : public IConnection
      * @param message Message to be sent.
      * @return true if the message is successfully sent, false otherwise.
      */
-    bool send(const std::string& message) override;
+    bool send(const std::string &message) override;
 
     /**
      * @brief Send a message through a specific socket.
@@ -169,7 +165,7 @@ class TCPv4Connection : public IConnection
      * @param fdDestiny socket file descriptor to use to send message.
      * @return true if the message is successfully sent, false otherwise.
      */
-    bool sendto(const std::string& message, int fdDestiny);
+    bool sendto(const std::string &message, int fdDestiny);
 
     /**
      * @brief Receive a message through the connection.
@@ -217,7 +213,7 @@ class TCPv6Connection : public IConnection
      * @param port Port number of the connection.
      * @param isBlocking Flag to set the connection as blocking or non-blocking.
      */
-    TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking);
+    TCPv6Connection(const std::string &address, const std::string &port, bool isBlocking);
 
     ~TCPv6Connection();
 
@@ -241,7 +237,9 @@ class TCPv6Connection : public IConnection
      * @param message Message to be sent.
      * @return true if the message is successfully sent, false otherwise.
      */
-    bool send(const std::string& message) override;
+    bool send(const std::string &message) override;
+
+    bool sendto(const std::string &message, int fdDestiny);
 
     /**
      * @brief Receive a message through the connection.
@@ -272,7 +270,7 @@ class TCPv6Connection : public IConnection
     int getSocket() override;
 
   private:
-    struct addrinfo* addrinfo = NULL;
+    struct addrinfo *addrinfo = NULL;
     bool binded = false;
 };
 
@@ -294,7 +292,7 @@ class UDPConnection : public IConnection
      * @param port Port number of the connection.
      * @param isBlocking Flag to set the connection as blocking or non-blocking.
      */
-    UDPConnection(const std::string& address, const std::string& port, bool isBlocking, bool IPv6);
+    UDPConnection(const std::string &address, const std::string &port, bool isBlocking, bool IPv6);
 
     /**
      * @brief Destroy the UDPConnection object.
@@ -322,7 +320,7 @@ class UDPConnection : public IConnection
      * @return true if the message is successfully sent, false if data is not sent
      * or is incomplete.
      */
-    bool send(const std::string& message) override;
+    bool send(const std::string &message) override;
 
     /**
      * @brief Receive a message through the connection.
@@ -359,7 +357,7 @@ class UDPConnection : public IConnection
  * @param protocolMacro Macro representing the network protocol.
  * @return IConnection* Pointer to the created connection.
  */
-std::unique_ptr<IConnection> createConnection(const std::string& address, const std::string& port, bool isBlocking,
+std::unique_ptr<IConnection> createConnection(const std::string &address, const std::string &port, bool isBlocking,
                                               int protocolMacro);
 
 #endif // _CPP_SOCKET_LIB_HPP

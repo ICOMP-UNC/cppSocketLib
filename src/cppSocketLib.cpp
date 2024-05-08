@@ -224,7 +224,7 @@ bool TCPv6Connection::bind()
     }
     binded = true;
 
-    return binded;
+    return true;
 }
 
 int TCPv6Connection::connect()
@@ -243,8 +243,6 @@ int TCPv6Connection::connect()
     {
         throw std::runtime_error("Error: cannot connect");
     }
-    binded = true;
-
     return true;
 }
 
@@ -258,12 +256,22 @@ bool TCPv6Connection::send(const std::string &message)
     return true;
 }
 
+bool TCPv6Connection::sendto(const std::string &message, int fdDestiny)
+{
+    int numberBytes = ::send(fdDestiny, message.c_str(), message.size(), 0); // contesta al cliente mediante el mismo fd
+    if (numberBytes < 0)
+    {
+        throw std::runtime_error("Error: message sending failure");
+    }
+    return true;
+}
+
 std::string TCPv6Connection::receiveFrom(int socket)
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
-    int bytesReceived = ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
+    int bytesReceived = ::recv(socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
     {
         throw std::runtime_error("Error: failed to receive message");
@@ -280,7 +288,7 @@ std::string TCPv6Connection::receiveFrom(int socket)
 std::string TCPv6Connection::receive()
 {
     std::vector<char> recvMessage;
-    recvMessage.reserve(MAX_MESSAGE_LENGTH);
+    recvMessage.resize(MAX_MESSAGE_LENGTH);
 
     int bytesReceived = ::recv(m_socket, recvMessage.data(), recvMessage.size(), 0);
     if (bytesReceived < 0)
