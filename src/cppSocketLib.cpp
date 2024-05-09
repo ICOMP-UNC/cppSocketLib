@@ -41,7 +41,7 @@ TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& 
     }
 
     addrinfo* raw_addrinfo = nullptr;
-    int resultAddrInfo = getaddrinfo(address.c_str(), port.c_str(), &hints, &raw_addrinfo);
+    int resultAddrInfo = getaddrinfo(address.empty() ? nullptr : address.c_str(), port.c_str(), &hints, &raw_addrinfo);
 
     if (resultAddrInfo != 0)
     {

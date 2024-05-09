@@ -92,11 +92,27 @@ public:
     virtual bool send(const std::string& message) = 0;
 
     /**
+     * @brief Send a message through a specific socket.
+     *
+     * @param message Message to be sent.
+     * @param fdDestiny socket file descriptor to use to send message.
+     * @return true if the message is successfully sent, false otherwise.
+     */
+    virtual bool sendto(const std::string& message, int fdDestiny) = 0;
+
+    /**
      * @brief Receive a message through the connection.
      *
      * @return std::string Received message.
      */
     virtual std::string receive() = 0;
+
+    /**
+     * @brief Receive a message through a specific socket
+     *
+     * @return std::string Received message.
+     */
+    virtual std::string receiveFrom(int socket) = 0;
 
     /**
      * @brief Change the options of the connection.
@@ -165,7 +181,7 @@ public:
      * @param fdDestiny socket file descriptor to use to send message.
      * @return true if the message is successfully sent, false otherwise.
      */
-    bool sendto(const std::string& message, int fdDestiny);
+    bool sendto(const std::string& message, int fdDestiny) override;
 
     /**
      * @brief Receive a message through the connection.
@@ -179,7 +195,7 @@ public:
      *
      * @return std::string Received message.
      */
-    std::string receiveFrom(int socket);
+    std::string receiveFrom(int socket) override;
 
     /**
      * @brief Change the options of the connection.
@@ -239,7 +255,14 @@ public:
      */
     bool send(const std::string& message) override;
 
-    bool sendto(const std::string& message, int fdDestiny);
+    /**
+     * @brief Send a message through a specific socket.
+     *
+     * @param message Message to be sent.
+     * @param fdDestiny socket file descriptor to use to send message.
+     * @return true if the message is successfully sent, false otherwise.
+     */
+    bool sendto(const std::string& message, int fdDestiny) override;
 
     /**
      * @brief Receive a message through the connection.
@@ -253,7 +276,7 @@ public:
      *
      * @return std::string Received message.
      */
-    std::string receiveFrom(int socket);
+    std::string receiveFrom(int socket) override;
 
     /**
      * @brief Change the options of the connection.
@@ -323,12 +346,22 @@ public:
     bool send(const std::string& message) override;
 
     /**
+     * @brief Currently this method does the same as send().
+     */
+    bool sendto(const std::string& message, int fdDestiny) override { return send(message); };
+
+    /**
      * @brief Receive a message through the connection.
      *
      * @return std::string Received message. EXIT_FAILURE if the message is not
      * received.
      */
     std::string receive() override;
+
+    /**
+     * @brief Currently this method does the same as receive().
+     */
+    std::string receiveFrom(int socket) override { return receive(); };
 
     /**
      * @brief Change the options of the connection.
