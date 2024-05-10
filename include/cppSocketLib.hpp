@@ -214,6 +214,7 @@ public:
     int getSocket() override;
 
 private:
+    bool autoSelectPort;
     struct sockaddr_in addrinfo4;
     std::unique_ptr<addrinfo> m_addrinfo;
     bool binded = false;
@@ -382,6 +383,9 @@ public:
     int getSocket() override;
 
 private:
+    bool isIPv6, autoSelectPort;
+    struct sockaddr_in6 address6;
+    struct sockaddr_in address4;
     std::unique_ptr<addrinfo> m_addrinfo; // Smart pointer for addrinfo
 };
 

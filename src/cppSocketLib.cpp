@@ -37,6 +37,7 @@ TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& 
 
     if (port.empty())
     {
+        autoSelectPort = true;
         socklen_t addr_len = sizeof(addrinfo4);
         memset((char *)&addrinfo4, 0, addr_len);
         addrinfo4.sin_family = AF_INET;
@@ -76,7 +77,7 @@ TCPv4Connection::~TCPv4Connection()
 
 bool TCPv4Connection::bind()
 {
-    if(m_addrinfo != nullptr){
+    if(!autoSelectPort){
         if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
         {
             throw std::runtime_error("Error: cannot bind socket");
@@ -364,6 +365,37 @@ int TCPv6Connection::getSocket()
 UDPConnection::UDPConnection(const std::string& address, const std::string& port, bool isBlocking, bool IPv6)
     : IConnection(address, port, isBlocking)
 {
+    m_socket = socket(IPv6? AF_INET6 : AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    isIPv6 = IPv6;
+
+    if (m_socket < 0)
+    {
+        throw std::runtime_error("Error creating socket");
+    }
+    if (!isBlocking)
+    {
+        int flags = fcntl(m_socket, F_GETFL, 0);
+        fcntl(m_socket, F_SETFL, flags | O_NONBLOCK);
+    }
+
+    if(port.empty()){
+        autoSelectPort = true;
+        if(IPv6)
+        {
+            memset((char*)&address, 0, sizeof(address));
+            address6.sin6_family = AF_INET6;
+            address6.sin6_port = htons(0);
+            address6.sin6_addr = in6addr_any;
+        } else {
+            memset((char*)&address, 0, sizeof(address));
+            address4.sin_family = AF_INET;
+            address4.sin_port = htons(0);
+            address4.sin_addr.s_addr = INADDR_ANY;
+        }
+    }
+    m_port = port;
+
+
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
 
@@ -385,25 +417,13 @@ UDPConnection::UDPConnection(const std::string& address, const std::string& port
 
     addrinfo* rawAddrinfo = nullptr; // Raw pointer to store the result of getaddrinfo
 
-    const auto resultAddrInfo = getaddrinfo(address.c_str(), port.c_str(), &hints, &rawAddrinfo);
+    const auto resultAddrInfo = getaddrinfo(address.empty()? nullptr : address.c_str(), port.c_str(), &hints, &rawAddrinfo);
     if (resultAddrInfo != 0)
     {
         throw std::runtime_error("Error getting address");
     }
 
     m_addrinfo = std::unique_ptr<addrinfo>(rawAddrinfo); // Wrap raw pointer in the smart pointer
-
-    m_socket = socket(m_addrinfo->ai_family, m_addrinfo->ai_socktype, m_addrinfo->ai_protocol);
-
-    if (m_socket < 0)
-    {
-        throw std::runtime_error("Error creating socket");
-    }
-    if (!isBlocking)
-    {
-        int flags = fcntl(m_socket, F_GETFL, 0);
-        fcntl(m_socket, F_SETFL, flags | O_NONBLOCK);
-    }
 }
 
 UDPConnection::~UDPConnection() {}
@@ -416,11 +436,32 @@ int UDPConnection::getSocket()
 bool UDPConnection::bind()
 {
     // Bind socket to address
-    if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
+
+    if(!autoSelectPort)
+    {
+        if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
+        {
+            throw std::runtime_error("Error binding socket to address: ");
+        }
+        return true;
+    }
+    if(isIPv6){
+        socklen_t addr_len = sizeof(address6);
+        if (::bind(m_socket, (struct sockaddr *) &address6, addr_len) < 0)
+        {
+            throw std::runtime_error("Error binding socket to address: ");
+        }
+        ::getsockname(m_socket, (struct sockaddr *)&address6, &addr_len);
+        m_port = std::to_string(ntohs(address6.sin6_port));
+        return true;
+    }
+    socklen_t addr_len = sizeof(address4);
+    if (::bind(m_socket, (struct sockaddr *) &address4, addr_len) < 0)
     {
         throw std::runtime_error("Error binding socket to address: ");
     }
-
+    ::getsockname(m_socket, (struct sockaddr *)&address4, &addr_len);
+    m_port = std::to_string(ntohs(address4.sin_port));
     return true;
 }
 
