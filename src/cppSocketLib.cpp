@@ -28,6 +28,24 @@ IConnection::~IConnection() {}
 TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& port, bool isBlocking)
     : IConnection(address, port, isBlocking)
 {
+    m_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (m_socket < 0)
+    {
+        throw std::runtime_error("Error creating socket");
+    }
+
+    if (port.empty())
+    {
+        socklen_t addr_len = sizeof(addrinfo4);
+        memset((char *)&addrinfo4, 0, addr_len);
+        addrinfo4.sin_family = AF_INET;
+        addrinfo4.sin_port = htons(0); // 0 will automatically select an available port.
+        addrinfo4.sin_addr.s_addr = INADDR_ANY;
+        return;
+    }
+    m_port = std::string(port);
+
     struct addrinfo hints;
     hints.ai_flags = 0;
     hints.ai_family = AF_INET;
@@ -49,13 +67,6 @@ TCPv4Connection::TCPv4Connection(const std::string& address, const std::string& 
     }
 
     m_addrinfo = std::unique_ptr<addrinfo>(raw_addrinfo);
-
-    m_socket = socket(m_addrinfo->ai_family, m_addrinfo->ai_socktype, m_addrinfo->ai_protocol);
-
-    if (m_socket < 0)
-    {
-        throw std::runtime_error("Error creating socket");
-    }
 }
 
 TCPv4Connection::~TCPv4Connection()
@@ -65,9 +76,21 @@ TCPv4Connection::~TCPv4Connection()
 
 bool TCPv4Connection::bind()
 {
-    if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
+    if(m_addrinfo != nullptr){
+        if (::bind(m_socket, m_addrinfo->ai_addr, m_addrinfo->ai_addrlen) < 0)
+        {
+            throw std::runtime_error("Error: cannot bind socket");
+        }
+    } else
     {
-        throw std::runtime_error("Error: cannot bind socket");
+        socklen_t addr_len = sizeof(addrinfo4);
+        if (::bind(m_socket, (struct sockaddr *)&addrinfo4, addr_len) < 0)
+        {
+            std::cout << "A" << std::endl;
+            throw std::runtime_error("Error: cannot bind socket");
+        }
+        ::getsockname(m_socket, (struct sockaddr *)&addrinfo4, &addr_len);
+        m_port = std::to_string(ntohs(addrinfo4.sin_port));
     }
 
     int resultListen = ::listen(m_socket, TCP_BACKLOG); // Escuchar conexiones entrantes
@@ -175,6 +198,21 @@ int TCPv4Connection::getSocket()
 TCPv6Connection::TCPv6Connection(const std::string& address, const std::string& port, bool isBlocking)
     : IConnection(address, port, isBlocking)
 {
+    m_socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+    if (m_socket < 0)
+    {
+        throw std::runtime_error("Error creating socket");
+    }
+
+    if (port.empty()){
+        socklen_t addr_len = sizeof(addrinfo6);
+        memset((char *)&addrinfo6, 0, addr_len);
+        addrinfo6.sin6_family = AF_INET6;
+        addrinfo6.sin6_port = htons(0); // 0 will automatically select an available port.
+        addrinfo6.sin6_addr = in6addr_any;
+        return;
+    }
+
     struct addrinfo hints;
     hints.ai_flags = 0;
     hints.ai_family = AF_INET6; // IPv6
@@ -193,12 +231,6 @@ TCPv6Connection::TCPv6Connection(const std::string& address, const std::string& 
     {
         throw std::runtime_error(gai_strerror(resultAddrInfo));
     }
-    m_socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
-
-    if (m_socket < 0)
-    {
-        throw std::runtime_error("Error creating socket");
-    }
 }
 
 TCPv6Connection::~TCPv6Connection()
@@ -212,10 +244,25 @@ TCPv6Connection::~TCPv6Connection()
 
 bool TCPv6Connection::bind()
 {
-    if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
+    if(addrinfo != nullptr)
     {
-        throw std::runtime_error("Error: cannot bind socket");
+        if (::bind(m_socket, addrinfo->ai_addr, addrinfo->ai_addrlen) < 0)
+        {
+            throw std::runtime_error("Error: cannot bind socket");
+        }
+        m_port = std::to_string(ntohs(((struct sockaddr_in6*)addrinfo)->sin6_port));
     }
+    else
+    {
+        socklen_t addr_len = sizeof(addrinfo6);
+        if (::bind(m_socket, (struct sockaddr *)&addrinfo6, addr_len) < 0)
+        {
+            throw std::runtime_error("Error: cannot bind socket");
+        }
+        ::getsockname(m_socket, (struct sockaddr *)&addrinfo6, &addr_len);
+        m_port = std::to_string(ntohs(addrinfo6.sin6_port));
+    }
+
 
     int resultListen = ::listen(m_socket, TCP_BACKLOG); // Listen for incoming connections.
     if (resultListen < 0)

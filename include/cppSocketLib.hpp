@@ -128,6 +128,8 @@ public:
      */
     virtual int getSocket() = 0;
 
+    std::string GetPort() { return m_port; }
+
 protected:
     std::string m_address; //< IP address of the connection. */
     std::string m_port;    //< Port number of the connection. */
@@ -212,6 +214,7 @@ public:
     int getSocket() override;
 
 private:
+    struct sockaddr_in addrinfo4;
     std::unique_ptr<addrinfo> m_addrinfo;
     bool binded = false;
 };
@@ -293,6 +296,7 @@ public:
     int getSocket() override;
 
 private:
+    struct sockaddr_in6 addrinfo6;
     struct addrinfo* addrinfo = NULL;
     bool binded = false;
 };
