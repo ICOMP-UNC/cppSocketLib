@@ -21,15 +21,11 @@ jobs:
         with:
           packages: doxygen gcovr lcov cppcheck graphviz clang-format valgrind bc
           version: 1.0
-
-      - name: Build project
-        uses: ./.github/actions/building
-
       - name: Run style check
         uses: ./.github/actions/style
 
       - name: Run documentation check
         uses: ./.github/actions/documentation
 
-      - name: Run tests and coverage
-        uses: ./.github/actions/coverage_and_test
+      - name: Build project
+        uses: ./.github/actions/building
