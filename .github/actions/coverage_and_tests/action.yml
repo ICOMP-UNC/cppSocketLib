@@ -1,0 +1,102 @@
+name: "Test and coverage check"
+description: "Test and coverage check with gcovr, pass if coverage is greater than 20%"
+
+inputs:
+  path:
+    required: true
+    description: "Path to run tests and coverage"
+    default: .
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run tests
+      shell: bash
+      run: |
+          # Run tests and check for memory leaks
+          valgrind --leak-check=full ctest --output-on-failure
+
+    - name: Generate coverage files
+      shell: bash
+      run: |
+          # Set arguments
+          arguments="--capture "
+
+          # Set working directory
+          if [[ -d "build/tests/unit" ]]; then
+            arguments+="--directory build/tests/unit "
+          fi
+
+          if [[ -d "build/tests/component" ]]; then
+            arguments+="--directory build/tests/component "
+          fi
+
+          if [[ -d "build/tests" ]]; then
+            arguments+="--directory build/tests "
+          fi
+
+          # Set output file
+          arguments+="--output-file build/coverage.info "
+
+          # # Disable branch coverage
+          arguments+="-rc lcov_branch_coverage=0 "
+
+          # Include test files
+          while IFS= read -r file; do
+            arguments+="--include $file "
+          done < <(find src/ include/ -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" -o -name "*.c" \))
+
+          echo "Executing: lcov $arguments"
+          lcov $arguments
+
+    - name: Generate coverage report
+      shell: bash
+      run: |
+
+        # Generate HTML report
+        genhtml build/coverage.info --output-directory coverage_report
+
+    # Upload the coverage report as an artifact
+    - name: Uploading coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Coverage Report
+        path: ${{ inputs.path }}/coverage_report
+        retention-days: 1
+
+    # Check whether the coverage is greater than 20% both for lines and functions
+    - name: Validate coverage
+      shell: bash
+      run: |
+
+        # Obtain the coverage data
+        coverageData=($(lcov --list build/coverage.info | tail -n1 | grep -oE '[0-9.]+%'))
+
+        # Check if lines the coverage is greater than 20%
+        linesCoverage=$(echo "${coverageData[0]}" | sed 's/%//')
+        echo "Lines coverage is: $linesCoverage %"
+        if ! (( $(echo "$linesCoverage > 20" | bc -l) )); then
+          echo "----------------------------------------"
+          echo "FAILED: Lines coverage is lower than 20%"
+          echo "----------------------------------------"
+          exit 1
+        else
+          echo "------------------------------------------"
+          echo "PASSED: Lines coverage is greater than 20%"
+          echo "------------------------------------------"
+        fi
+
+        # Check if functions coverage is greater than 20%
+        functionsCoverage=$(echo "${coverageData[1]}" | sed 's/%//')
+        echo "Functions coverage is: $functionsCoverage %"
+        if ! (( $(echo "$functionsCoverage > 20" | bc -l) )); then
+          echo "---------------------------------------------"
+          echo "FAILED: Functions coverage is lower than 20%"
+          echo "--------------------------------------------"
+          exit 1
+        else
+          echo "----------------------------------------------"
+          echo "PASSED: Functions coverage is greater than 20%"
+          echo "----------------------------------------------"
+        fi

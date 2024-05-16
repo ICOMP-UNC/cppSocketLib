@@ -7,7 +7,7 @@ on:
     types: [synchronize, opened, reopened, ready_for_review]
 
 jobs:
-  build:
+  QAFlow:
     runs-on: ubuntu-latest
 
     steps:
@@ -29,3 +29,6 @@ jobs:
 
       - name: Build project
         uses: ./.github/actions/building
+
+      - name: Run tests and generate coverage
+        uses: ./.github/actions/coverage_and_tests

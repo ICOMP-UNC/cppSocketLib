@@ -36,13 +36,13 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")  # Change from *.c to *.cpp
 add_library(${PROJECT_NAME} ${SOURCES})
 
 # Setup Google Test
-#if(RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1)  # This is set by enable_testing()
-# FetchContent_Declare(
-#   googletest
-#   GIT_REPOSITORY ${GTEST_GIT_URL}
-#   GIT_TAG v1.13.0  # Optionally pin to a stable release
-# )
-# 
-# FetchContent_MakeAvailable(googletest)
-# add_subdirectory(tests)
-#endif()
+if(RUN_TESTS EQUAL 1 OR RUN_COVERAGE EQUAL 1)  # This is set by enable_testing()
+ FetchContent_Declare(
+   googletest
+   GIT_REPOSITORY ${GTEST_GIT_URL}
+   GIT_TAG v1.13.0  # Optionally pin to a stable release
+ )
+ 
+ FetchContent_MakeAvailable(googletest)
+ add_subdirectory(tests)
+endif()

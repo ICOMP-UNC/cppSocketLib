@@ -7,9 +7,6 @@ runs:
       - name: Compile
         shell: bash
         run: |
-          SRC_FOLDER=$(pwd)/src
-
+          echo "Running command: cmake -DRUN_COVERAGE=1 .. && make -j2"
           mkdir -p build && cd build
           cmake -DRUN_COVERAGE=1 .. && make -j2
-
-          echo "Running command: cmake -DRUN_COVERAGE=1 .. && make -j2"
