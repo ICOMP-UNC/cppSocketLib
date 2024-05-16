@@ -19,7 +19,7 @@ runs:
     - name: Generate coverage files
       shell: bash
       run: |
-          cd ${{ inputs.path }}/build
+          cd ${{ inputs.path }}
 
           # Set arguments
           arguments="--capture "
@@ -54,10 +54,11 @@ runs:
     - name: Generate coverage report
       shell: bash
       run: |
-        cd ${{ inputs.path }}
-        
+
+        cd ${{ inputs.path }}/build
+
         # Generate HTML report
-        genhtml build/coverage.info --output-directory coverage_report
+        genhtml coverage.info --output-directory coverage_report
 
     # Upload the coverage report as an artifact
     - name: Uploading coverage report
@@ -65,7 +66,7 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: Coverage Report
-        path: ${{ inputs.path }}/coverage_report
+        path: ${{ inputs.path }}/build/coverage_report
         retention-days: 1
 
     # Check whether the coverage is greater than 20% both for lines and functions
@@ -73,6 +74,8 @@ runs:
       shell: bash
       run: |
 
+        cd ${{ inputs.path }}
+        
         # Obtain the coverage data
         coverageData=($(lcov --list build/coverage.info | tail -n1 | grep -oE '[0-9.]+%'))
 
