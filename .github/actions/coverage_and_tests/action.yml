@@ -19,6 +19,8 @@ runs:
     - name: Generate coverage files
       shell: bash
       run: |
+          cd ${{ inputs.path }}/build
+
           # Set arguments
           arguments="--capture "
 
@@ -36,7 +38,7 @@ runs:
           fi
 
           # Set output file
-          arguments+="--output-file build/coverage.info "
+          arguments+="--output-file coverage.info "
 
           # # Disable branch coverage
           arguments+="-rc lcov_branch_coverage=0 "
@@ -52,7 +54,8 @@ runs:
     - name: Generate coverage report
       shell: bash
       run: |
-
+        cd ${{ inputs.path }}
+        
         # Generate HTML report
         genhtml build/coverage.info --output-directory coverage_report
 
