@@ -1,5 +1,7 @@
 # Echoes of Survival
 
+[![QA Workflow](https://github.com/ICOMP-UNC/cppSocketLib/actions/workflows/QAWorkflow.yml/badge.svg)](https://github.com/ICOMP-UNC/cppSocketLib/actions/workflows/QAWorkflow.yml)
+
 ## 🎯 Objectives
 - **Develop a C++ library** that encapsulates the complexity of socket programming, providing an easy-to-use interface for sending and receiving data over the network.
 - **Ensure the library is robust and fault-tolerant**, capable of handling network inconsistencies and failures gracefully.
