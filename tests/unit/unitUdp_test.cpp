@@ -17,8 +17,8 @@
 #ifndef UDP_TEST_HPP
 #define UDP_TEST_HPP
 
-#include "gtest/gtest.h"
 #include "cppSocketLib.hpp"
+#include "gtest/gtest.h"
 
 TEST(UDPConnectionTestIPv4, BindSuccess)
 {
