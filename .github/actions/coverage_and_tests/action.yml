@@ -15,6 +15,13 @@ runs:
       run: |
           cd ${{ inputs.path }}/build
 
+          ctest --output-on-failure
+
+    - name: Run valgrind
+      shell: bash
+      run: |
+          cd ${{ inputs.path }}/build
+
           # Run tests and check for memory leaks
           valgrind --leak-check=full ctest --output-on-failure
 
