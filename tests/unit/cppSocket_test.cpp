@@ -17,7 +17,7 @@
 #ifndef TCP_TEST_HPP
 #define TCP_TEST_HPP
 
-#include "cppSocketLib.hpp"
+#include "cppSocket.hpp"
 #include "gtest/gtest.h"
 
 TEST(TCPConnectionTestIPv4, BindSuccess)

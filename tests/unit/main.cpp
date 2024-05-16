@@ -14,7 +14,6 @@
  * all copies or substantial portions of the Software.
  */
 
-#include "cppSocketLib.hpp"
 #include <gtest/gtest.h>
 
 int main(int argc, char** argv)

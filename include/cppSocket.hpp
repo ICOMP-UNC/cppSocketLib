@@ -128,6 +128,11 @@ public:
      */
     virtual int getSocket() = 0;
 
+    /**
+     * @brief Get the IP address of the connection.
+     *
+     * @return std::string IP address of the connection.
+     */
     std::string GetPort()
     {
         return m_port;
@@ -322,6 +327,7 @@ public:
      * @param address IP address of the connection.
      * @param port Port number of the connection.
      * @param isBlocking Flag to set the connection as blocking or non-blocking.
+     * @param IPv6 Flag to set the connection as IPv6 or IPv4.
      */
     UDPConnection(const std::string& address, const std::string& port, bool isBlocking, bool IPv6);
 

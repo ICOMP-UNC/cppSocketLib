@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
-project(unit_test)
+project(unit_tests)
 
 # Collect tests
 file(GLOB TESTS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/unit/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../src/*.cpp)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
 
 # Ensure these paths are correct
 include_directories(${PROJECT_SOURCE_DIR}/../src)
@@ -43,4 +43,4 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # Add test
-add_test(NAME test_${PROJECT_NAME} COMMAND tests) # Use the target name 'tests' for the command
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
