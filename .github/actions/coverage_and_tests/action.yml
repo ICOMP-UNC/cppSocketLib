@@ -53,9 +53,12 @@ runs:
           arguments+="-rc lcov_branch_coverage=0 "
 
           # Include test files
-          while IFS= read -r file; do
-            arguments+="--include $file "
-          done < <(find src/ include/ -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" -o -name "*.c" \))
+          include_files=""
+          for file in $(find src/ include/ -type f -regextype posix-extended -regex ".*/*\.(hpp|cpp|h|c)")
+          do
+            include_files+="--include=$(pwd)$dir/$file "
+          done
+          arguments+="$include_files"
 
           echo "Executing: lcov $arguments"
           lcov $arguments
