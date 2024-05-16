@@ -43,10 +43,10 @@ constexpr auto TCP_BACKLOG = 1024;         // Macro for maximum connections
  */
 enum class Protocol
 {
-    TCPv4, /**< TCP IPv4 protocol. */
-    TCPv6, /**< TCP IPv6 protocol  */
-    UDPv4, /**< UDP IPv4 protocol. */
-    UDPv6  /**< UDP IPv6 protocol. */
+    TCPv4, ///< TCP IPv4 protocol.
+    TCPv6, ///< TCP IPv6 protocol.
+    UDPv4, ///< UDP IPv4 protocol.
+    UDPv6  ///< UDP IPv6 protocol.
 };
 
 /**
@@ -128,16 +128,21 @@ public:
      */
     virtual int getSocket() = 0;
 
+    /**
+     * @brief Get the IP address of the connection.
+     *
+     * @return std::string IP address of the connection.
+     */
     std::string GetPort()
     {
         return m_port;
     }
 
 protected:
-    std::string m_address; //< IP address of the connection. */
-    std::string m_port;    //< Port number of the connection. */
-    bool m_isBlocking;     //< Flag to set the connection as blocking or non-blocking.*/
-    int m_socket;          //< File descriptor of the socket.
+    std::string m_address; ///< IP address of the connection. */
+    std::string m_port;    ///< Port number of the connection. */
+    bool m_isBlocking;     ///< Flag to set the connection as blocking or non-blocking.*/
+    int m_socket;          ///< File descriptor of the socket.
 };
 
 /**
@@ -322,6 +327,7 @@ public:
      * @param address IP address of the connection.
      * @param port Port number of the connection.
      * @param isBlocking Flag to set the connection as blocking or non-blocking.
+     * @param IPv6 Flag to set the connection as IPv6 or IPv4.
      */
     UDPConnection(const std::string& address, const std::string& port, bool isBlocking, bool IPv6);
 
@@ -355,6 +361,8 @@ public:
 
     /**
      * @brief Currently this method does the same as send().
+     * @param message Message to be sent.
+     * @param fdDestiny socket file descriptor to use to send message.
      */
     bool sendto(const std::string& message, int fdDestiny) override
     {
@@ -392,10 +400,10 @@ public:
     int getSocket() override;
 
 private:
-    bool isIPv6, autoSelectPort;
-    struct sockaddr_in6 address6;
-    struct sockaddr_in address4;
-    std::unique_ptr<addrinfo> m_addrinfo; // Smart pointer for addrinfo
+    bool isIPv6, autoSelectPort;          ///< Flag to set the connection as blocking or non-blocking.*/
+    struct sockaddr_in6 address6;         ///< IP address of the connection. */
+    struct sockaddr_in address4;          ///< IP address of the connection. */
+    std::unique_ptr<addrinfo> m_addrinfo; ///< Smart pointer for addrinfo */
 };
 
 /**

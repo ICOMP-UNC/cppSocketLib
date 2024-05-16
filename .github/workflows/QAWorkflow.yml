@@ -7,7 +7,7 @@ on:
     types: [synchronize, opened, reopened, ready_for_review]
 
 jobs:
-  build:
+  QAFlow:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,15 +21,14 @@ jobs:
         with:
           packages: doxygen gcovr lcov cppcheck graphviz clang-format valgrind bc
           version: 1.0
-
-      - name: Build project
-        uses: ./.github/actions/building
-
       - name: Run style check
         uses: ./.github/actions/style
 
       - name: Run documentation check
         uses: ./.github/actions/documentation
 
-      - name: Run tests and coverage
-        uses: ./.github/actions/coverage_and_test
+      - name: Build project
+        uses: ./.github/actions/building
+
+      - name: Run tests and generate coverage
+        uses: ./.github/actions/coverage_and_tests
