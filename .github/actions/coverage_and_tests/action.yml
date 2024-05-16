@@ -14,7 +14,7 @@ runs:
       shell: bash
       run: |
           cd ${{ inputs.path }}/build
-          
+
           # Run tests and check for memory leaks
           valgrind --leak-check=full ctest --output-on-failure
 
@@ -40,7 +40,7 @@ runs:
           fi
 
           # Set output file
-          arguments+="--output-file coverage.info "
+          arguments+="--output-file build/coverage.info "
 
           # # Disable branch coverage
           arguments+="-rc lcov_branch_coverage=0 "
