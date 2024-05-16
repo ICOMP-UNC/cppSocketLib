@@ -43,10 +43,10 @@ constexpr auto TCP_BACKLOG = 1024;         // Macro for maximum connections
  */
 enum class Protocol
 {
-    TCPv4, /**< TCP IPv4 protocol. */
-    TCPv6, /**< TCP IPv6 protocol  */
-    UDPv4, /**< UDP IPv4 protocol. */
-    UDPv6  /**< UDP IPv6 protocol. */
+    TCPv4, ///< TCP IPv4 protocol.
+    TCPv6, ///< TCP IPv6 protocol.
+    UDPv4, ///< UDP IPv4 protocol.
+    UDPv6  ///< UDP IPv6 protocol.
 };
 
 /**
@@ -139,10 +139,10 @@ public:
     }
 
 protected:
-    std::string m_address; //< IP address of the connection. */
-    std::string m_port;    //< Port number of the connection. */
-    bool m_isBlocking;     //< Flag to set the connection as blocking or non-blocking.*/
-    int m_socket;          //< File descriptor of the socket.
+    std::string m_address; ///< IP address of the connection. */
+    std::string m_port;    ///< Port number of the connection. */
+    bool m_isBlocking;     ///< Flag to set the connection as blocking or non-blocking.*/
+    int m_socket;          ///< File descriptor of the socket.
 };
 
 /**
@@ -400,10 +400,10 @@ public:
     int getSocket() override;
 
 private:
-    bool isIPv6, autoSelectPort;          //< Flag to set the connection as blocking or non-blocking.*/
-    struct sockaddr_in6 address6;         //< IP address of the connection. */
-    struct sockaddr_in address4;          //< IP address of the connection. */
-    std::unique_ptr<addrinfo> m_addrinfo; //< Smart pointer for addrinfo */
+    bool isIPv6, autoSelectPort;          ///< Flag to set the connection as blocking or non-blocking.*/
+    struct sockaddr_in6 address6;         ///< IP address of the connection. */
+    struct sockaddr_in address4;          ///< IP address of the connection. */
+    std::unique_ptr<addrinfo> m_addrinfo; ///< Smart pointer for addrinfo */
 };
 
 /**
