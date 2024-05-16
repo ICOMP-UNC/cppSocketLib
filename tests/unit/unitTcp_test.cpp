@@ -17,23 +17,25 @@
 #ifndef TCP_TEST_HPP
 #define TCP_TEST_HPP
 
-#include "gtest/gtest.h"
 #include "cppSocketLib.hpp"
+#include "gtest/gtest.h"
 
-TEST(TCPConnectionTestIPv4, BindSuccess) {
-    auto conn = TCPv4Connection("127.0.0.1","8080",false);
-    
+TEST(TCPConnectionTestIPv4, BindSuccess)
+{
+    auto conn = TCPv4Connection("127.0.0.1", "8080", false);
 }
 
 // Test to verify TCPv6Connection initialization is working
-TEST(TCPv6ConnectionTest, BindSuccess) {
+TEST(TCPv6ConnectionTest, BindSuccess)
+{
     TCPv6Connection conn("::1", "8080", false);
 
     EXPECT_NO_THROW(conn.bind());
 }
 
 // Testo to verify the conection client-server is working
-TEST(TCPv6ConnectionTest, ConnectSuccess) {
+TEST(TCPv6ConnectionTest, ConnectSuccess)
+{
     TCPv6Connection server("::1", "8080", false);
     TCPv6Connection client("::1", "8080", false);
 
@@ -43,7 +45,8 @@ TEST(TCPv6ConnectionTest, ConnectSuccess) {
 }
 
 // Test to verify send the message correctly
-TEST(TCPv6ConnectionTest, SendMessage) {
+TEST(TCPv6ConnectionTest, SendMessage)
+{
     TCPv6Connection server("::1", "8080", false);
     TCPv6Connection client("::1", "8080", false);
 

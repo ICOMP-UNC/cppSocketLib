@@ -129,7 +129,10 @@ public:
      */
     virtual int getSocket() = 0;
 
-    std::string GetPort() { return m_port; }
+    std::string GetPort()
+    {
+        return m_port;
+    }
 
 protected:
     std::string m_address; //< IP address of the connection. */
@@ -354,7 +357,11 @@ public:
     /**
      * @brief Currently this method does the same as send().
      */
-    bool sendto(const std::string& message, int fdDestiny) override { UNUSED(fdDestiny);return send(message); };
+    bool sendto(const std::string& message, int fdDestiny) override
+    {
+        UNUSED(fdDestiny);
+        return send(message);
+    };
 
     /**
      * @brief Receive a message through the connection.
@@ -367,7 +374,11 @@ public:
     /**
      * @brief Currently this method does the same as receive().
      */
-    std::string receiveFrom(int socket) override { UNUSED(socket) ;return receive(); };
+    std::string receiveFrom(int socket) override
+    {
+        UNUSED(socket);
+        return receive();
+    };
 
     /**
      * @brief Change the options of the connection.
