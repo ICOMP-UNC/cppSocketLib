@@ -517,7 +517,7 @@ std::string UDPConnection::receive()
 }
 bool UDPConnection::changeOptions()
 {
-    throw std::runtime_error("Not implemented");
+    throw std::runtime_error("Not implemented.");
 }
 
 std::unique_ptr<IConnection>
