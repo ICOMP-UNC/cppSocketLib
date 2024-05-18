@@ -362,9 +362,8 @@ public:
     /**
      * @brief Currently this method does the same as send().
      * @param message Message to be sent.
-     * @param fdDestiny socket file descriptor to use to send message.
      */
-    bool sendto(const std::string& message, int fdDestiny) override
+    bool sendto(const std::string& message, int /*fdDestiny*/) override
     {
         return send(message);
     };
@@ -380,7 +379,7 @@ public:
     /**
      * @brief Currently this method does the same as receive().
      */
-    std::string receiveFrom(int socket) override
+    std::string receiveFrom(int /*socket*/) override
     {
         return receive();
     };
